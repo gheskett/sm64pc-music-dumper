@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef TARGET_WEB
 #include <emscripten.h>
@@ -7,7 +8,11 @@
 
 #include "sm64.h"
 
+#include "gfx_dimensions.h"
+#include "config.h"
 #include "game/memory.h"
+#include "game/game_init.h"
+#include "game/print.h"
 #include "audio/external.h"
 
 #include "gfx/gfx_pc.h"
@@ -42,6 +47,9 @@ s8 gNmiResetBarsTimer;
 s8 gDebugLevelSelect;
 s8 gShowProfiler;
 s8 gShowDebugText;
+
+FILE* audioDump;
+s16 dumpStrFrameCounter = 0;
 
 static struct AudioAPI *audio_api;
 static struct GfxWindowManagerAPI *wm_api;
@@ -78,6 +86,86 @@ void exec_display_list(struct SPTask *spTask) {
 #define SAMPLES_LOW 528
 #endif
 
+void print_debug() {
+    if (dumpStrFrameCounter <= 0)
+        return;
+
+    dumpStrFrameCounter--;
+    if (audioDump)
+        print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), 197 - BORDER_HEIGHT, "AUDIO DUMP STARTED");
+    else
+        print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), 197 - BORDER_HEIGHT, "AUDIO DUMP STOPPED");
+}
+
+u8 open_audio_dump() {
+    // RIFF WAV Header Data
+    u8 buff[0x2C] = {0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,
+    0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20,
+    0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
+    0x00, 0x7D, 0x00, 0x00, 0x00, 0xF4, 0x01, 0x00,
+    0x04, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61,
+    0x00, 0x00, 0x00, 0x00};
+
+    if (audioDump)
+        return 0;
+
+    audioDump = fopen("dump.wav", "wb");
+    if (!audioDump)
+        return 0;
+
+    fseek(audioDump, 0, SEEK_END);
+    fwrite(buff, 1, 0x2C, audioDump);
+
+    dumpStrFrameCounter = 60;
+    return 1;
+}
+
+u8 close_audio_dump() {
+    if (!audioDump)
+        return 0;
+
+    fclose(audioDump);
+    audioDump = NULL;
+
+    dumpStrFrameCounter = 60;
+    return 1;
+}
+
+void on_l_pressed() {
+    if (audioDump) {
+        close_audio_dump();
+        return;
+    }
+
+    open_audio_dump();
+}
+
+void dump_audio(s16 *audioBuffer, size_t size) {
+    u32 fileSize;
+
+    if (gPlayer1Controller->buttonPressed & L_TRIG)
+        on_l_pressed();
+
+    if (!audioDump)
+        return;
+
+    fseek(audioDump, 0, SEEK_END);
+    fwrite(audioBuffer, 2, size, audioDump);
+    fseek(audioDump, 0, SEEK_END);
+
+    fileSize = ftell(audioDump);
+
+    fseek(audioDump, 0x04, SEEK_SET);
+    fwrite(&fileSize, 4, 1, audioDump);
+
+    fseek(audioDump, 0x28, SEEK_SET);
+    fileSize -= 0x2C;
+    fwrite(&fileSize, 4, 1, audioDump);
+
+    if (fileSize >= 0x20000000) // 512 MB
+        close_audio_dump();
+}
+
 void produce_one_frame(void) {
     gfx_start_frame();
     game_loop_one_iteration();
@@ -95,6 +183,10 @@ void produce_one_frame(void) {
     }
     //printf("Audio samples before submitting: %d\n", audio_api->buffered());
     audio_api->play((u8 *)audio_buffer, 2 * num_audio_samples * 4);
+
+    dump_audio(audio_buffer, num_audio_samples * 4);
+
+    print_debug();
     
     gfx_end_frame();
 }

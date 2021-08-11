@@ -31,11 +31,12 @@ struct ConfigOption {
  */
 bool configFullscreen            = false;
 // Keyboard mappings (scancode values)
-unsigned int configKeyA          = 0x26;
-unsigned int configKeyB          = 0x33;
-unsigned int configKeyStart      = 0x39;
-unsigned int configKeyR          = 0x36;
-unsigned int configKeyZ          = 0x25;
+unsigned int configKeyA          = 0x4F;
+unsigned int configKeyB          = 0x50;
+unsigned int configKeyStart      = 0x1C;
+unsigned int configKeyR          = 0x12;
+unsigned int configKeyL          = 0x10;
+unsigned int configKeyZ          = 0x39;
 unsigned int configKeyCUp        = 0x148;
 unsigned int configKeyCDown      = 0x150;
 unsigned int configKeyCLeft      = 0x14B;
@@ -44,6 +45,10 @@ unsigned int configKeyStickUp    = 0x11;
 unsigned int configKeyStickDown  = 0x1F;
 unsigned int configKeyStickLeft  = 0x1E;
 unsigned int configKeyStickRight = 0x20;
+unsigned int configKeyDUp        = 0x48;
+unsigned int configKeyDDown      = 0x4B;
+unsigned int configKeyDLeft      = 0x4C;
+unsigned int configKeyDRight     = 0x4D;
 
 
 static const struct ConfigOption options[] = {
@@ -52,6 +57,7 @@ static const struct ConfigOption options[] = {
     {.name = "key_b",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyB},
     {.name = "key_start",      .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStart},
     {.name = "key_r",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyR},
+    {.name = "key_l",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyL},
     {.name = "key_z",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyZ},
     {.name = "key_cup",        .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCUp},
     {.name = "key_cdown",      .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCDown},
@@ -61,6 +67,10 @@ static const struct ConfigOption options[] = {
     {.name = "key_stickdown",  .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickDown},
     {.name = "key_stickleft",  .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickLeft},
     {.name = "key_stickright", .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickRight},
+    {.name = "key_dpadup",     .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDUp},
+    {.name = "key_dpaddown",   .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDDown},
+    {.name = "key_dpadleft",   .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDLeft},
+    {.name = "key_dpadright",  .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDRight},
 };
 
 // Reads an entire line from a file (excluding the newline character) and returns an allocated string
