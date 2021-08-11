@@ -14,6 +14,7 @@
 - The audio will be placed in the same folder as the executable.
 - An audio dump will automatically be closed after file size exceeds 512MB.
 - Any new audio dumps will overwrite the old ones, so be sure to move/rename them once they're created.
+- Audio dumps with the PC port don't quite produce a 1:1 output with Jabo Direct 1.7 using Project64, but playback of the dumps are more consistent and may sound subjectively better/crispier quality-wise
 
 ### Game Speed / Framerate
 

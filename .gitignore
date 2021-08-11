@@ -12,6 +12,7 @@
 *.pch
 
 # Libraries
+*.lib
 *.a
 *.la
 *.lo
@@ -40,6 +41,7 @@
 # Text editor remnants
 *.swp
 .vscode/*
+desktop.ini
 
 # General project-specific ignores
 __pycache__/*
@@ -52,6 +54,7 @@ build/*
 .assets-local.txt
 sm64_save_file.bin
 sm64config.txt
+dump*.wav
 
 # Assets. Generally ignored, but ones with "custom" in the name are fine.
 /levels/**/*.png
