@@ -44,41 +44,41 @@
             "release_rate": 19,
             "normal_range_hi": 50,
             "envelope": "envelope0",
-            "sound": "00",
-            "sound_hi": "01"
+            "sound": "00_organ_1",
+            "sound_hi": "01_organ_1_lq"
         },
         "inst1": {
             "release_rate": 19,
             "normal_range_hi": 50,
             "envelope": "envelope1",
-            "sound": "00",
-            "sound_hi": "01"
+            "sound": "00_organ_1",
+            "sound_hi": "01_organ_1_lq"
         },
         "inst2": {
             "release_rate": 19,
             "normal_range_hi": 50,
             "envelope": "envelope2",
-            "sound": "00",
-            "sound_hi": "01"
+            "sound": "00_organ_1",
+            "sound_hi": "01_organ_1_lq"
         },
         "inst3": {
             "release_rate": 19,
             "normal_range_hi": 50,
             "envelope": "envelope3",
-            "sound": "00",
-            "sound_hi": "01"
+            "sound": "00_organ_1",
+            "sound_hi": "01_organ_1_lq"
         },
         "inst4": {
             "release_rate": 19,
             "normal_range_hi": 50,
             "envelope": "envelope4",
-            "sound": "00",
-            "sound_hi": "01"
+            "sound": "00_organ_1",
+            "sound_hi": "01_organ_1_lq"
         },
         "inst5": {
             "release_rate": 10,
             "envelope": "envelope5",
-            "sound": "02"
+            "sound": "02_boys_choir"
         }
     },
     "instrument_list": [
