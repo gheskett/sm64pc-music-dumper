@@ -11,7 +11,7 @@
 
 static int keyboard_buttons_down;
 
-static int keyboard_mapping[13][2];
+static int keyboard_mapping[18][2];
 
 static int keyboard_map_scancode(int scancode) {
     int ret = 0;
@@ -59,7 +59,12 @@ static void keyboard_init(void) {
     set_keyboard_mapping(i++, D_CBUTTONS,   configKeyCDown);
     set_keyboard_mapping(i++, R_CBUTTONS,   configKeyCRight);
     set_keyboard_mapping(i++, R_TRIG,       configKeyR);
+    set_keyboard_mapping(i++, L_TRIG,       configKeyL);
     set_keyboard_mapping(i++, START_BUTTON, configKeyStart);
+    set_keyboard_mapping(i++, U_JPAD,       configKeyDUp);
+    set_keyboard_mapping(i++, L_JPAD,       configKeyDLeft);
+    set_keyboard_mapping(i++, R_JPAD,       configKeyDRight);
+    set_keyboard_mapping(i++, D_JPAD,       configKeyDDown);
 
 #ifdef TARGET_WEB
     controller_emscripten_keyboard_init();

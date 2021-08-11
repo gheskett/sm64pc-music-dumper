@@ -1,5 +1,28 @@
 # Super Mario 64 Port
 
+## AUDIO DUMP PORT STUFFS 
+
+### Compilation
+
+- To compile Windows executable, use MSYS2 MSYS (Mingw) as a terminal.
+- Navigate to repo: `cd [Drive Letter]:/[Path]`
+- Compile: `make -j8`
+
+### Audio Dumping
+
+- Press the L button to start/stop an audio dump (Mapped to Q on keyboard).
+- The audio will be placed in the same folder as the executable.
+- An audio dump will automatically be closed after file size exceeds 512MB.
+- Any new audio dumps will overwrite the old ones, so be sure to move/rename them once they're created.
+
+### Game Speed / Framerate
+
+- Game speed / Framerate should have no effect on audio dump, especially if it's run at or above 30FPS. Any gameplay stuttering will not ruin the dump.
+- In NVIDIA Control Panel, set Vertical sync to Off for the executable.
+- In NVIDIA Control Panel, set Max Frame Rate to 30FPS for normal speed, ~90FPS for fast but manageable, and Off for virtually unusably fast.
+
+## About
+
 - This repo contains a full decompilation of Super Mario 64 (J), (U), and (E) with minor exceptions in the audio subsystem.
 - Naming and documentation of the source code and data structures are in progress.
 - Efforts to decompile the Shindou ROM steadily advance toward a matching build.
