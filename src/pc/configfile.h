@@ -2,6 +2,7 @@
 #define CONFIGFILE_H
 
 extern bool         configFullscreen;
+extern int          configMaxSpeedupFrameRate;
 extern unsigned int configKeyA;
 extern unsigned int configKeyB;
 extern unsigned int configKeyStart;
@@ -20,6 +21,7 @@ extern unsigned int configKeyDUp;
 extern unsigned int configKeyDDown;
 extern unsigned int configKeyDLeft;
 extern unsigned int configKeyDRight;
+extern unsigned int configSpeedupKey;
 
 void configfile_load(const char *filename);
 void configfile_save(const char *filename);

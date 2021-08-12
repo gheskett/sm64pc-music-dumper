@@ -7,6 +7,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+int get_keyboard_buttons_down(void);
 bool keyboard_on_key_down(int scancode);
 bool keyboard_on_key_up(int scancode);
 void keyboard_on_all_keys_up(void);
