@@ -606,10 +606,10 @@ def serialize_ctl(bank, base_ser, is_shindou):
             0 if sound["sample"] is None else sample_name_to_addr[sound["sample"]]
         )
         if "tuning" in sound:
-            tuning = sound["tuning"]
+            tuning = sound["tuning"] * (32000 / 48000)
         else:
             aifc = bank.sample_bank.name_to_entry[sound["sample"]]
-            tuning = aifc.sample_rate / 32000
+            tuning = aifc.sample_rate / 48000
         ser.add(pack("PfX", sample_addr, tuning))
 
     no_sound = {"sample": None, "tuning": 0.0}

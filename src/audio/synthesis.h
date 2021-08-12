@@ -4,11 +4,11 @@
 #include "internal.h"
 
 #ifdef VERSION_SH
-#define DEFAULT_LEN_1CH 0x180
-#define DEFAULT_LEN_2CH 0x300
+#define DEFAULT_LEN_1CH 0x240
+#define DEFAULT_LEN_2CH 0x480
 #else
-#define DEFAULT_LEN_1CH 0x140
-#define DEFAULT_LEN_2CH 0x280
+#define DEFAULT_LEN_1CH 0x1E0
+#define DEFAULT_LEN_2CH 0x3C0
 #endif
 
 #if defined(VERSION_EU) || defined(VERSION_SH)

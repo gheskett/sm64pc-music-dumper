@@ -31,11 +31,11 @@
 #define ROUND_DOWN_16(v) ((v) & ~0xf)
 
 #ifdef NEW_AUDIO_UCODE
-#define BUF_SIZE 2880
-#define BUF_U8(a) (rspa.buf.as_u8 + ((a) - 0x450))
-#define BUF_S16(a) (rspa.buf.as_s16 + ((a) - 0x450) / sizeof(int16_t))
+#define BUF_SIZE 4320
+#define BUF_U8(a) (rspa.buf.as_u8 + ((a) - 0x678))
+#define BUF_S16(a) (rspa.buf.as_s16 + ((a) - 0x678) / sizeof(int16_t))
 #else
-#define BUF_SIZE 2512
+#define BUF_SIZE 3768
 #define BUF_U8(a) (rspa.buf.as_u8 + (a))
 #define BUF_S16(a) (rspa.buf.as_s16 + (a) / sizeof(int16_t))
 #endif
