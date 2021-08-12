@@ -6,22 +6,22 @@
 
 - To compile Windows executable, use MSYS2 MinGW 64-bit as a terminal.
 - Navigate to repo: `cd [Drive Letter]:/[Path]`
-- Compile: `make -j8`
+- Compile: `make -j`
 
 ### Audio Dumping
 
 - Press the L button to start/stop an audio dump (Mapped to Q on keyboard).
-- The audio will be placed in the same folder as the executable.
+- The audio will be placed in the same folder as the call to run the executable.
 - An audio dump will automatically be closed after file size exceeds 512MB.
-- Any new audio dumps will overwrite the old ones, so be sure to move/rename them once they're created.
+- Any new audio dumps will not overwrite the old ones.
 - Audio dumps with the PC port don't quite produce a 1:1 output with Jabo Direct 1.7 using Project64, but playback of the dumps are more consistent and may sound subjectively better/crispier quality-wise
 
 ### Game Speed / Framerate
 
 - Game speed / Framerate should have no effect on audio dump, especially if it's run at or above 30FPS. Any gameplay stuttering will not ruin the dump.
-- In NVIDIA Control Panel, set Vertical sync to Off for the executable.
-- In NVIDIA Control Panel, set Max Frame Rate to 30FPS for normal speed, ~90FPS for fast but manageable, and Off for virtually unusably fast.
-
+- In the NVIDIA Control Panel, set Vertical sync and Max Frame Rate to Off for the executable.
+- Use the speedup key (Tab) to speed up gameplay to about as fast as your computer can handle.
+- To cap the speedup, change the max_speedup_framerate field in the sm64config.txt to a positive integer of your choice.
 ## About
 
 - This repo contains a full decompilation of Super Mario 64 (J), (U), (E), and (SH).

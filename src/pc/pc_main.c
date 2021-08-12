@@ -1,5 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#include <math.h>
+#endif
 
 #ifdef TARGET_WEB
 #include <emscripten.h>
@@ -41,6 +47,13 @@
 
 OSMesg gMainReceivedMesg;
 OSMesgQueue gSIEventMesgQueue;
+
+struct timeval nextFrame;
+struct timeval currentTime;
+u8 countToThree = 0;
+const u32 FRAMERATE = 30;
+const u32 US_PER_FRAME = 1000000 / FRAMERATE;
+u32 US_PER_FRAME_MIN;
 
 s8 gResetTimer;
 s8 gNmiResetBarsTimer;
@@ -97,7 +110,36 @@ void print_debug() {
         print_text(GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(22), 197 - BORDER_HEIGHT, "AUDIO DUMP STOPPED");
 }
 
+u8 open_audio_file(char *buffer) {
+    sprintf(buffer, "dump.wav");
+    audioDump = fopen(buffer, "r");
+    if (audioDump) {
+        for (s32 i = 0; i >= 0; ++i) {
+            fclose(audioDump);
+
+            sprintf(buffer, "dump_%d.wav", i);
+            audioDump = fopen(buffer, "r");
+
+            if (!audioDump)
+                break;
+        }
+    }
+
+    if (audioDump) {
+        fclose(audioDump);
+        audioDump = NULL;
+        return FALSE;
+    }
+
+    audioDump = fopen(buffer, "wb");
+    if (audioDump)
+        return TRUE;
+
+    return FALSE;
+}
+
 u8 open_audio_dump() {
+    char nameBuffer[128];
     // RIFF WAV Header Data
     u8 buff[0x2C] = {0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,
     0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20,
@@ -107,28 +149,29 @@ u8 open_audio_dump() {
     0x00, 0x00, 0x00, 0x00};
 
     if (audioDump)
-        return 0;
+        return FALSE;
 
-    audioDump = fopen("dump.wav", "wb");
+    open_audio_file(nameBuffer);
+
     if (!audioDump)
-        return 0;
+        return FALSE;
 
     fseek(audioDump, 0, SEEK_END);
     fwrite(buff, 1, 0x2C, audioDump);
 
     dumpStrFrameCounter = 60;
-    return 1;
+    return TRUE;
 }
 
 u8 close_audio_dump() {
     if (!audioDump)
-        return 0;
+        return FALSE;
 
     fclose(audioDump);
     audioDump = NULL;
 
     dumpStrFrameCounter = 60;
-    return 1;
+    return TRUE;
 }
 
 void on_l_pressed() {
@@ -166,7 +209,59 @@ void dump_audio(s16 *audioBuffer, size_t size) {
         close_audio_dump();
 }
 
+s64 get_time_diff(struct timeval *old, struct timeval *new) {
+    return ((s64) new->tv_sec - (s64) old->tv_sec) * 1000000L
+     + (s64) new->tv_usec - (s64) old->tv_usec;
+}
+
+void sleep_before_frame(void) {
+    gettimeofday(&currentTime, NULL);
+
+    // Force at FRAMERATE FPS unless holding speedup key
+    if (get_time_diff(&nextFrame, &currentTime) < 0) {
+        s64 diff = get_time_diff(&currentTime, &nextFrame);
+#if defined(_WIN32) || defined(_WIN64)
+        Sleep(ceil((double) diff / 1000.0));
+#else
+        struct timeval sleepTime;
+        sleepTime.tv_sec = diff / 1000000;
+        sleepTime.tv_usec = diff % 1000000;
+        select(0, NULL, NULL, NULL, &sleepTime);
+#endif
+    }
+}
+
+void calculate_wait_next_frame(void) {
+    if (get_keyboard_buttons_down() & 0x100000) {
+        nextFrame.tv_usec += US_PER_FRAME_MIN;
+    }
+    else {
+        if (FRAMERATE == 30)
+            countToThree++;
+        else if (FRAMERATE == 60)
+            countToThree += 2;
+        nextFrame.tv_usec += US_PER_FRAME;
+    }
+
+    if (countToThree >= 3) {
+        nextFrame.tv_usec++;
+        countToThree -= 3;
+    }
+
+    nextFrame.tv_sec += nextFrame.tv_usec / 1000000;
+    nextFrame.tv_usec %= 1000000;
+
+    // Max framerate exceeded
+    if (get_time_diff(&nextFrame, &currentTime) > 0) {
+        nextFrame.tv_usec = currentTime.tv_usec;
+        nextFrame.tv_sec = currentTime.tv_sec;
+        countToThree = 0;
+    }
+}
+
 void produce_one_frame(void) {
+    sleep_before_frame();
+
     gfx_start_frame();
     game_loop_one_iteration();
     
@@ -189,6 +284,8 @@ void produce_one_frame(void) {
     print_debug();
     
     gfx_end_frame();
+
+    calculate_wait_next_frame();
 }
 
 #ifdef TARGET_WEB
@@ -244,6 +341,10 @@ void main_func(void) {
 
     configfile_load(CONFIG_FILE);
     atexit(save_config);
+
+    US_PER_FRAME_MIN = (configMaxSpeedupFrameRate > (s64) FRAMERATE) ? (1000000U / (u32) configMaxSpeedupFrameRate) : US_PER_FRAME;
+    if (configMaxSpeedupFrameRate < 0)
+        US_PER_FRAME_MIN = 0;
 
 #ifdef TARGET_WEB
     emscripten_set_main_loop(em_main_loop, 0, 0);
@@ -308,6 +409,9 @@ void main_func(void) {
     inited = 1;
 #else
     inited = 1;
+
+    gettimeofday(&nextFrame, NULL);
+
     while (1) {
         wm_api->main_loop(produce_one_frame);
     }
