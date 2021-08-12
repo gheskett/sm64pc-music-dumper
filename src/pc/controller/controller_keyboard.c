@@ -9,9 +9,13 @@
 
 #include "../configfile.h"
 
-static int keyboard_buttons_down;
+static int keyboard_buttons_down = 0;
 
-static int keyboard_mapping[18][2];
+static int keyboard_mapping[19][2];
+
+int get_keyboard_buttons_down(void) {
+    return keyboard_buttons_down;
+}
 
 static int keyboard_map_scancode(int scancode) {
     int ret = 0;
@@ -65,6 +69,7 @@ static void keyboard_init(void) {
     set_keyboard_mapping(i++, L_JPAD,       configKeyDLeft);
     set_keyboard_mapping(i++, R_JPAD,       configKeyDRight);
     set_keyboard_mapping(i++, D_JPAD,       configKeyDDown);
+    set_keyboard_mapping(i++, 0x100000,     configSpeedupKey);
 
 #ifdef TARGET_WEB
     controller_emscripten_keyboard_init();

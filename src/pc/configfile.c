@@ -13,6 +13,7 @@
 enum ConfigOptionType {
     CONFIG_TYPE_BOOL,
     CONFIG_TYPE_UINT,
+    CONFIG_TYPE_INT,
     CONFIG_TYPE_FLOAT,
 };
 
@@ -22,6 +23,7 @@ struct ConfigOption {
     union {
         bool *boolValue;
         unsigned int *uintValue;
+        int *intValue;
         float *floatValue;
     };
 };
@@ -30,6 +32,7 @@ struct ConfigOption {
  *Config options and default values
  */
 bool configFullscreen            = false;
+int configMaxSpeedupFrameRate    = -1;
 // Keyboard mappings (scancode values)
 unsigned int configKeyA          = 0x4F;
 unsigned int configKeyB          = 0x50;
@@ -49,28 +52,31 @@ unsigned int configKeyDUp        = 0x148;
 unsigned int configKeyDDown      = 0x150;
 unsigned int configKeyDLeft      = 0x14B;
 unsigned int configKeyDRight     = 0x14D;
+unsigned int configSpeedupKey    = 0x0F;
 
 
 static const struct ConfigOption options[] = {
-    {.name = "fullscreen",     .type = CONFIG_TYPE_BOOL, .boolValue = &configFullscreen},
-    {.name = "key_a",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyA},
-    {.name = "key_b",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyB},
-    {.name = "key_start",      .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStart},
-    {.name = "key_r",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyR},
-    {.name = "key_l",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyL},
-    {.name = "key_z",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyZ},
-    {.name = "key_cup",        .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCUp},
-    {.name = "key_cdown",      .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCDown},
-    {.name = "key_cleft",      .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCLeft},
-    {.name = "key_cright",     .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCRight},
-    {.name = "key_stickup",    .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickUp},
-    {.name = "key_stickdown",  .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickDown},
-    {.name = "key_stickleft",  .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickLeft},
-    {.name = "key_stickright", .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickRight},
-    {.name = "key_dpadup",     .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDUp},
-    {.name = "key_dpaddown",   .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDDown},
-    {.name = "key_dpadleft",   .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDLeft},
-    {.name = "key_dpadright",  .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDRight},
+    {.name = "fullscreen",            .type = CONFIG_TYPE_BOOL, .boolValue = &configFullscreen},
+    {.name = "max_speedup_framerate", .type = CONFIG_TYPE_INT,  .intValue  = &configMaxSpeedupFrameRate},
+    {.name = "key_a",                 .type = CONFIG_TYPE_UINT, .uintValue = &configKeyA},
+    {.name = "key_b",                 .type = CONFIG_TYPE_UINT, .uintValue = &configKeyB},
+    {.name = "key_start",             .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStart},
+    {.name = "key_r",                 .type = CONFIG_TYPE_UINT, .uintValue = &configKeyR},
+    {.name = "key_l",                 .type = CONFIG_TYPE_UINT, .uintValue = &configKeyL},
+    {.name = "key_z",                 .type = CONFIG_TYPE_UINT, .uintValue = &configKeyZ},
+    {.name = "key_cup",               .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCUp},
+    {.name = "key_cdown",             .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCDown},
+    {.name = "key_cleft",             .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCLeft},
+    {.name = "key_cright",            .type = CONFIG_TYPE_UINT, .uintValue = &configKeyCRight},
+    {.name = "key_stickup",           .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickUp},
+    {.name = "key_stickdown",         .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickDown},
+    {.name = "key_stickleft",         .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickLeft},
+    {.name = "key_stickright",        .type = CONFIG_TYPE_UINT, .uintValue = &configKeyStickRight},
+    {.name = "key_dpadup",            .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDUp},
+    {.name = "key_dpaddown",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDDown},
+    {.name = "key_dpadleft",          .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDLeft},
+    {.name = "key_dpadright",         .type = CONFIG_TYPE_UINT, .uintValue = &configKeyDRight},
+    {.name = "key_speedup",           .type = CONFIG_TYPE_UINT, .uintValue = &configSpeedupKey},
 };
 
 // Reads an entire line from a file (excluding the newline character) and returns an allocated string
@@ -195,6 +201,9 @@ void configfile_load(const char *filename) {
                         case CONFIG_TYPE_UINT:
                             sscanf(tokens[1], "%u", option->uintValue);
                             break;
+                        case CONFIG_TYPE_INT:
+                            sscanf(tokens[1], "%d", option->intValue);
+                            break;
                         case CONFIG_TYPE_FLOAT:
                             sscanf(tokens[1], "%f", option->floatValue);
                             break;
@@ -233,6 +242,9 @@ void configfile_save(const char *filename) {
                 break;
             case CONFIG_TYPE_UINT:
                 fprintf(file, "%s %u\n", option->name, *option->uintValue);
+                break;
+            case CONFIG_TYPE_INT:
+                fprintf(file, "%s %d\n", option->name, *option->intValue);
                 break;
             case CONFIG_TYPE_FLOAT:
                 fprintf(file, "%s %f\n", option->name, *option->floatValue);

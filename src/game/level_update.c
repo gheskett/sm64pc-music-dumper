@@ -991,7 +991,8 @@ s32 play_mode_normal(void) {
         } else if (sTransitionTimer != 0) {
             set_play_mode(PLAY_MODE_CHANGE_AREA);
         } else if (pressed_pause()) {
-            lower_background_noise(1);
+            // lower_background_noise(1); // stop music on pause
+            lower_background_noise(2); // soft music on pause
 #ifdef VERSION_SH
             cancel_rumble();
 #endif
@@ -1007,7 +1008,8 @@ s32 play_mode_paused(void) {
     if (gPauseScreenMode == 0) {
         set_menu_mode(RENDER_PAUSE_SCREEN);
     } else if (gPauseScreenMode == 1) {
-        raise_background_noise(1);
+        // raise_background_noise(1); // resume music
+        raise_background_noise(2); // normalize music volume
         gCameraMovementFlags &= ~CAM_MOVE_PAUSE_SCREEN;
         set_play_mode(PLAY_MODE_NORMAL);
     } else {
@@ -1037,7 +1039,8 @@ s32 play_mode_frame_advance(void) {
         play_mode_normal();
     } else if (gPlayer1Controller->buttonPressed & START_BUTTON) {
         gCameraMovementFlags &= ~CAM_MOVE_PAUSE_SCREEN;
-        raise_background_noise(1);
+        // raise_background_noise(1); // resume music
+        raise_background_noise(2); // normalize music volume
         set_play_mode(PLAY_MODE_NORMAL);
     } else {
         gCameraMovementFlags |= CAM_MOVE_PAUSE_SCREEN;
