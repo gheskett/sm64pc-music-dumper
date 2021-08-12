@@ -4,7 +4,7 @@
 
 ### Compilation
 
-- To compile Windows executable, use MSYS2 MSYS (Mingw) as a terminal.
+- To compile Windows executable, use MSYS2 MinGW 64-bit as a terminal.
 - Navigate to repo: `cd [Drive Letter]:/[Path]`
 - Compile: `make -j8`
 

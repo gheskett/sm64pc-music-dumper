@@ -9,12 +9,14 @@
 #define TEXRECT_MAX_Y 220
 
 #define GLYPH_SPACE           -1
+#define GLYPH_NONTERMINATING_SPACE 0x9E
 #define GLYPH_U               30
 #define GLYPH_EXCLAMATION_PNT 36
 #define GLYPH_TWO_EXCLAMATION 37
 #define GLYPH_QUESTION_MARK   38
 #define GLYPH_AMPERSAND       39
 #define GLYPH_PERCENT         40
+#define GLYPH_MUSIC_NOTE      49
 #define GLYPH_MULTIPLY        50
 #define GLYPH_COIN            51
 #define GLYPH_MARIO_HEAD      52
@@ -29,5 +31,6 @@ void print_text_fmt_int(s32 x, s32 y, const char *str, s32 n);
 void print_text(s32 x, s32 y, const char *str);
 void print_text_centered(s32 x, s32 y, const char *str);
 void render_text_labels(void);
+s8 char_to_glyph_index_hud(u8 c);
 
 #endif // PRINT_H

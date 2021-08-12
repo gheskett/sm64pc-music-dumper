@@ -27,6 +27,7 @@ void set_sound_mode(u16 soundMode);
 void play_menu_sounds(s16 soundMenuFlags);
 void play_painting_eject_sound(void);
 void play_infinite_stairs_music(void);
+void reset_music_id();
 void set_background_music(u16 a, u16 seqArgs, s16 fadeTimer);
 void fadeout_music(s16 fadeOutTime);
 void fadeout_level_music(s16 fadeTimer);
