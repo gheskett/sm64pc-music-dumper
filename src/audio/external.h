@@ -26,6 +26,8 @@ extern u32 gAudioRandom;
 
 extern u8 gAudioSPTaskYieldBuffer[]; // ucode yield data ptr; only used in JP
 
+extern s8 isInSoundSelect;
+
 struct SPTask *create_next_audio_frame_task(void);
 void play_sound(s32 soundBits, f32 *pos);
 void audio_signal_game_loop_tick(void);

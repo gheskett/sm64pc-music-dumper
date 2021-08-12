@@ -221,6 +221,10 @@ void play_infinite_stairs_music(void) {
     }
 }
 
+void reset_music_id() {
+    sCurrentMusic = MUSIC_NONE;
+}
+
 /**
  * Called from threads: thread5_game_loop
  */

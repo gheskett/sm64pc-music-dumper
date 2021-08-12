@@ -347,6 +347,81 @@ s8 char_to_glyph_index(char c) {
 }
 
 /**
+ * Converts a char into the proper colorful glyph for the char.
+ */
+s8 char_to_glyph_index_hud(u8 c) {
+    if (c >= 0x24 && c <= 0x3D) {
+        return c - 26;
+    }
+
+    if (c == 0xF2) {
+        return GLYPH_EXCLAMATION_PNT; // !, JP only
+    }
+
+    if (c == 0xF8) {
+        return GLYPH_TWO_EXCLAMATION; // !!, JP only
+    }
+
+    if (c == 0xF4) {
+        return GLYPH_QUESTION_MARK; // ?, JP only
+    }
+
+    if (c == 0xE5) {
+        return GLYPH_AMPERSAND; // &, JP only
+    }
+
+    if (c == 0xF3) {
+        return GLYPH_PERCENT; // %, JP only
+    }
+
+    if (c == 0xFC) {
+        return GLYPH_MUSIC_NOTE; // music note
+    }
+
+    if (c == 0xFB) {
+        return GLYPH_MULTIPLY; // x
+    }
+
+    if (c == 0xF9) {
+        return GLYPH_COIN; // coin
+    }
+
+    if (c == 0xFD) {
+        return GLYPH_MARIO_HEAD; // Imagine I drew Mario's head
+    }
+
+    // if (c == 0xFB) {
+    //     return GLYPH_DEATHS; // death symbol
+    // }
+
+    if (c == 0xFA) {
+        return GLYPH_STAR; // star
+    }
+
+    if (c == 0xF5 || c == 0xF6) {
+        return GLYPH_DOUBLE_QUOTE;
+    }
+
+    if (c == 0x3E) {
+        return GLYPH_APOSTROPHE;
+    }
+
+
+    // if (c == 0x3F) {
+    //     // return GLYPH_PERIOD; // large shaded dot, JP only
+    // }
+
+    // if (c == 0xFC) {
+    //     return GLYPH_BETA_KEY; // beta key, JP only. Reused for Ü in EU.
+    // }
+
+    if (c >= 0x24)
+        return GLYPH_NONTERMINATING_SPACE;
+
+    return c;
+}
+
+/**
  * Adds an individual glyph to be rendered.
  */
 void add_glyph_texture(s8 glyphIndex) {
