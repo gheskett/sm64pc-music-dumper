@@ -18,6 +18,8 @@
 #define SEQ_PLAYER_ENV              1
 #define SEQ_PLAYER_SFX              2
 
+#define SEQUENCE_NONE 0xFF
+
 extern s32 gAudioErrorFlags;
 extern f32 gDefaultSoundArgs[3];
 
@@ -27,6 +29,7 @@ extern u32 gAudioRandom;
 extern u8 gAudioSPTaskYieldBuffer[]; // ucode yield data ptr; only used in JP
 
 extern s8 isInSoundSelect;
+extern u8 sPlayer0CurSeqId;
 
 struct SPTask *create_next_audio_frame_task(void);
 void play_sound(s32 soundBits, f32 *pos);
