@@ -788,7 +788,7 @@ void audio_reset_session(void) {
     gAudioBufferParameters.samplesPerUpdate = (gAudioBufferParameters.samplesPerFrameTarget / gAudioBufferParameters.updatesPerFrame) & 0xfff8;
     gAudioBufferParameters.samplesPerUpdateMax = gAudioBufferParameters.samplesPerUpdate + 8;
     gAudioBufferParameters.samplesPerUpdateMin = gAudioBufferParameters.samplesPerUpdate - 8;
-    gAudioBufferParameters.resampleRate = 32000.0f / FLOAT_CAST(gAudioBufferParameters.frequency);
+    gAudioBufferParameters.resampleRate = 48000.0f / FLOAT_CAST(gAudioBufferParameters.frequency);
     gAudioBufferParameters.unkUpdatesPerFrameScaled = (3.0f / 1280.0f) / gAudioBufferParameters.updatesPerFrame;
     gAudioBufferParameters.updatesPerFrameInv = 1.0f / gAudioBufferParameters.updatesPerFrame;
 
@@ -833,8 +833,8 @@ void audio_reset_session(void) {
     gReverbDownsampleRate = preset->reverbDownsampleRate;
     gVolume = preset->volume;
     gMinAiBufferLength = gSamplesPerFrameTarget - 0x10;
-    updatesPerFrame = gSamplesPerFrameTarget / 160 + 1;
-    gAudioUpdatesPerFrame = gSamplesPerFrameTarget / 160 + 1;
+    updatesPerFrame = gSamplesPerFrameTarget / 240 + 1;
+    gAudioUpdatesPerFrame = gSamplesPerFrameTarget / 240 + 1;
 
     // Compute conversion ratio from the internal unit tatums/tick to the
     // external beats/minute (JP) or tatums/minute (US). In practice this is
@@ -844,7 +844,7 @@ void audio_reset_session(void) {
 #else
     gTempoInternalToExternal = (u32)(updatesPerFrame * 2880000.0f / gTatumsPerBeat / 16.713f);
 #endif
-    gMaxAudioCmds = gMaxSimultaneousNotes * 20 * updatesPerFrame + 320;
+    gMaxAudioCmds = gMaxSimultaneousNotes * 20 * updatesPerFrame + 480;
 #endif
 
 #ifdef VERSION_EU

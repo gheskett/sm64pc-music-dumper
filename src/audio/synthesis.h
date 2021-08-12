@@ -3,8 +3,8 @@
 
 #include "internal.h"
 
-#define DEFAULT_LEN_1CH 0x140
-#define DEFAULT_LEN_2CH 0x280
+#define DEFAULT_LEN_1CH 0x1E0
+#define DEFAULT_LEN_2CH 0x3C0
 
 #ifdef VERSION_EU
 #define MAX_UPDATES_PER_FRAME 5

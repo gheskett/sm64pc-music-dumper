@@ -77,7 +77,7 @@ static bool audio_pulse_init(void) {
     // Create stream
     pa_sample_spec ss;
     ss.format = PA_SAMPLE_S16LE;
-    ss.rate = 32000;
+    ss.rate = 48000;
     ss.channels = 2;
     
     pa_buffer_attr attr;

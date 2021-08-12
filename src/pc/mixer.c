@@ -47,8 +47,8 @@ static struct {
 
     int16_t adpcm_table[8][2][8];
     union {
-        int16_t as_s16[2512 / sizeof(int16_t)];
-        uint8_t as_u8[2512];
+        int16_t as_s16[3768 / sizeof(int16_t)];
+        uint8_t as_u8[3768];
     } buf;
 } rspa;
 

@@ -52,7 +52,7 @@ static bool audio_alsa_init(void) {
 	snd_pcm_hw_params_t *params;
 	snd_pcm_uframes_t frames;
 
-	rate 	 = 32000;
+	rate 	 = 48000;
 	channels = 2;
 
 	/* Open the PCM device in playback mode */

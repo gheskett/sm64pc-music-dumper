@@ -678,7 +678,7 @@ struct AudioBufferParametersEU {
     /*0x0E*/ s16 samplesPerUpdate;
     /*0x10*/ s16 samplesPerUpdateMax;
     /*0x12*/ s16 samplesPerUpdateMin;
-    /*0x14*/ f32 resampleRate; // contains 32000.0f / frequency
+    /*0x14*/ f32 resampleRate; // contains 48000.0f / frequency
     /*0x18*/ f32 updatesPerFrameInv; // 1.0f / updatesPerFrame
     /*0x1C*/ f32 unkUpdatesPerFrameScaled; // 3.0f / (1280.0f * updatesPerFrame)
 };

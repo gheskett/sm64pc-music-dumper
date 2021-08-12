@@ -123,8 +123,8 @@ static bool audio_wasapi_setup_stream(void) {
         WAVEFORMATEX desired;
         desired.wFormatTag = WAVE_FORMAT_PCM;
         desired.nChannels = 2;
-        desired.nSamplesPerSec = 32000;
-        desired.nAvgBytesPerSec = 32000 * 2 * 2;
+        desired.nSamplesPerSec = 48000;
+        desired.nAvgBytesPerSec = 48000 * 2 * 2;
         desired.nBlockAlign = 4;
         desired.wBitsPerSample = 16;
         desired.cbSize = 0;
