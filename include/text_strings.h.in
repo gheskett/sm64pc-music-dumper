@@ -151,6 +151,11 @@
 #define TEXT_MONO _("MONO")
 #define TEXT_HEADSET _("HEADSET")
 
+#define TEXT_NEXT _("NEXT")
+#define TEXT_PREV _("PREV")
+#define TEXT_PLAY _("PLAY")
+#define TEXT_STOP _("STOP")
+
 // Misc Menu Text
 #define TEXT_SAVED_DATA_EXISTS _("SAVED DATA EXITS") // Misspell
 #define TEXT_NO_SAVED_DATA_EXISTS _("NO SAVED DATA EXISTS")

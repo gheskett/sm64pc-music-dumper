@@ -198,6 +198,10 @@ void play_infinite_stairs_music(void) {
     }
 }
 
+void reset_music_id() {
+    sCurrentMusic = MUSIC_NONE;
+}
+
 void set_background_music(u16 a, u16 seqArgs, s16 fadeTimer) {
     if (gResetTimer == 0 && seqArgs != sCurrentMusic) {
         if (gCurrCreditsEntry != NULL) {

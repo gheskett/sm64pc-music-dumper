@@ -1,6 +1,7 @@
 #include <PR/ultratypes.h>
 #include <PR/gbi.h>
 
+#include "seq_ids.h"
 #include "audio/external.h"
 #include "behavior_data.h"
 #include "dialog_ids.h"
@@ -15,6 +16,7 @@
 #include "game/object_list_processor.h"
 #include "game/print.h"
 #include "game/save_file.h"
+#include "game/sound_init.h"
 #include "game/segment2.h"
 #include "game/segment7.h"
 #include "game/spawn_object.h"
@@ -45,19 +47,18 @@ static s16 sSoundTextY;
 //! @Bug (UB Array Access) For EU, more buttons were added than the array was extended.
 //! This causes no currently known issues on console (as the other variables are not changed
 //! while this is used) but can cause issues with other compilers.
-#ifdef VERSION_EU
-    #ifdef AVOID_UB
-        #define NUM_BUTTONS 36
-    #else
-        #define NUM_BUTTONS 34
-    #endif
+#if defined(VERSION_EU) && !defined(AVOID_UB)
+#define NUM_BUTTONS (MENU_BUTTON_OPTION_MAX - 1)
 #else
-#define NUM_BUTTONS 32
+#define NUM_BUTTONS MENU_BUTTON_OPTION_MAX
 #endif
 
 // Amount of main menu buttons defined in the code called by spawn_object_rel_with_rot.
 // See file_select.h for the names in MenuButtonTypes.
 static struct Object *sMainMenuButtons[NUM_BUTTONS];
+
+static u8 seqNum = 0x21;
+static s16 sAudioSwapTimer = -1;
 
 #ifdef VERSION_EU
 // The current sound mode is automatically centered on US due to
@@ -170,6 +171,7 @@ static unsigned char textEraseFileButton[][16] = { {TEXT_ERASE_FILE}, {TEXT_ERAS
 
 #ifndef VERSION_EU
 static unsigned char textSoundModes[][8] = { { TEXT_STEREO }, { TEXT_MONO }, { TEXT_HEADSET } };
+static unsigned char textSoundTest[][5] = { { TEXT_PREV }, { TEXT_NEXT }, { TEXT_PLAY }, { TEXT_STOP } };
 #endif
 
 static unsigned char textMarioA[] = { TEXT_FILE_MARIO_A };
@@ -1008,10 +1010,28 @@ void check_erase_menu_clicked_buttons(struct Object *eraseButton) {
 #undef ACTION_TIMER
 #undef MAIN_RETURN_TIMER
 
+void play_seq_from_test(s16 seqidOffset) {
+    s16 tmpSeqNum = ((s16) seqNum + seqidOffset) % SEQ_COUNT;
+    if (tmpSeqNum < 0)
+        tmpSeqNum += SEQ_COUNT;
+
+    seqNum = (u8) tmpSeqNum;
+
+    if (!seqNum)
+        fadeout_background_music(get_current_background_music(), 80);
+    else
+        fadeout_background_music(get_current_background_music(), 0);
+
+    reset_music_id();
+    sAudioSwapTimer = 0;
+    return;
+}
+
 #ifdef VERSION_EU
     #define SOUND_BUTTON_Y 388
-#else
-    #define SOUND_BUTTON_Y 0
+#else 
+    // #define SOUND_BUTTON_Y 0
+    #define SOUND_BUTTON_Y 280
 #endif
 
 /**
@@ -1030,6 +1050,19 @@ void render_sound_mode_menu_buttons(struct Object *soundModeButton) {
     sMainMenuButtons[MENU_BUTTON_HEADSET] = spawn_object_rel_with_rot(
         soundModeButton, MODEL_MAIN_MENU_GENERIC_BUTTON, bhvMenuButton, -533, SOUND_BUTTON_Y, -100, 0, -0x8000, 0);
     sMainMenuButtons[MENU_BUTTON_HEADSET]->oMenuButtonScale = 0.11111111f;
+
+    // Left option button
+    sMainMenuButtons[MENU_BUTTON_LEFT] = spawn_object_rel_with_rot(
+        soundModeButton, MODEL_MAIN_MENU_GENERIC_BUTTON, bhvMenuButton, 768, SOUND_BUTTON_Y - 800, -100, 0, -0x8000, 0);
+    sMainMenuButtons[MENU_BUTTON_LEFT]->oMenuButtonScale = 0.11111111f;
+    // Right option button
+    sMainMenuButtons[MENU_BUTTON_RIGHT] = spawn_object_rel_with_rot(
+        soundModeButton, MODEL_MAIN_MENU_GENERIC_BUTTON, bhvMenuButton, 384, SOUND_BUTTON_Y - 800, -100, 0, -0x8000, 0);
+    sMainMenuButtons[MENU_BUTTON_RIGHT]->oMenuButtonScale = 0.11111111f;
+    // Play / Stop option button
+    sMainMenuButtons[MENU_BUTTON_PLAYSTOP] = spawn_object_rel_with_rot(
+        soundModeButton, MODEL_MAIN_MENU_GENERIC_BUTTON, bhvMenuButton, 0, SOUND_BUTTON_Y - 800, -100, 0, -0x8000, 0);
+    sMainMenuButtons[MENU_BUTTON_PLAYSTOP]->oMenuButtonScale = 0.11111111f;
 
 #ifdef VERSION_EU
     // English option button
@@ -1074,6 +1107,7 @@ void check_sound_mode_menu_clicked_buttons(struct Object *soundModeButton) {
                     || buttonID == MENU_BUTTON_HEADSET) {
                     if (soundModeButton->oMenuButtonActionPhase == SOUND_MODE_PHASE_MAIN) {
                         play_sound(SOUND_MENU_CLICK_FILE_SELECT, gDefaultSoundArgs);
+                        isInSoundSelect = FALSE;
                         sMainMenuButtons[buttonID]->oMenuButtonState = MENU_BUTTON_STATE_ZOOM_IN_OUT;
 #ifndef VERSION_EU
                         // Sound menu buttons don't return to Main Menu in EU
@@ -1083,6 +1117,18 @@ void check_sound_mode_menu_clicked_buttons(struct Object *soundModeButton) {
                         sSoundMode = buttonID - MENU_BUTTON_OPTION_MIN;
                         save_file_set_sound_mode(sSoundMode);
                     }
+                }
+                else if (buttonID == MENU_BUTTON_LEFT || buttonID == MENU_BUTTON_RIGHT) {
+                    if (buttonID == MENU_BUTTON_LEFT) {
+                        play_seq_from_test(-1);
+                    }
+                    else {
+                        play_seq_from_test(1);
+                    }
+                }
+                else if (buttonID == MENU_BUTTON_PLAYSTOP) {
+                    fadeout_background_music(get_current_background_music(), 80);
+                    reset_music_id();
                 }
 #ifdef VERSION_EU
                 // If language mode button clicked, select it and change language
@@ -1118,6 +1164,7 @@ void load_main_menu_save_file(struct Object *fileButton, s32 fileNum) {
     if (fileButton->oMenuButtonState == MENU_BUTTON_STATE_FULLSCREEN) {
         sSelectedFileNum = fileNum;
     }
+    isInSoundSelect = FALSE;
 }
 
 /**
@@ -1428,6 +1475,7 @@ void check_main_menu_clicked_buttons(void) {
             case MENU_BUTTON_SOUND_MODE:
                 play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gDefaultSoundArgs);
                 render_sound_mode_menu_buttons(sMainMenuButtons[MENU_BUTTON_SOUND_MODE]);
+                isInSoundSelect = TRUE;
                 break;
         }
 #ifdef VERSION_EU
@@ -1552,6 +1600,12 @@ void bhv_menu_button_manager_loop(void) {
             break;
         case MENU_BUTTON_HEADSET:
             return_to_main_menu(MENU_BUTTON_SOUND_MODE, sMainMenuButtons[MENU_BUTTON_HEADSET]);
+            break;
+        case MENU_BUTTON_LEFT:
+            break;
+        case MENU_BUTTON_RIGHT:
+            break;
+        case MENU_BUTTON_PLAYSTOP:
             break;
 #endif
     }
@@ -2408,6 +2462,8 @@ void print_erase_menu_strings(void) {
  */
 void print_sound_mode_menu_strings(void) {
     s32 mode;
+    u8 musicStr[9] = {0x1C, 0x0E, 0x1A, GLYPH_NONTERMINATING_SPACE, 0x00, 0x32, 0x00, 0x00, 0xFF}; // "SEQ 0x00";
+    s32 modeTmp;
 
 #ifdef VERSION_US
     s16 textX;
@@ -2468,8 +2524,9 @@ void print_sound_mode_menu_strings(void) {
         }
         #ifdef VERSION_US
             // Mode names are centered correctly on US
-            textX = get_str_x_pos_from_center(mode * 74 + 87, textSoundModes[mode], 10.0f);
-            print_generic_string(textX, 87, textSoundModes[mode]);
+            textX = get_str_x_pos_from_center(mode * 74 + 87, textSoundModes[mode], 10.0f); 
+            // print_generic_string(textX, 87, textSoundModes[mode]);
+            print_generic_string(textX, 126, textSoundModes[mode]);
         #elif VERSION_JP
             print_generic_string(mode * 74 + 67, 87, textSoundModes[mode]);
         #endif
@@ -2481,7 +2538,50 @@ void print_sound_mode_menu_strings(void) {
     print_generic_string(182, 29, textReturn[sLanguageMode]);
 #endif
 
+    // Print sound string stuffs
+    for (mode = 0; mode < 3; ++mode) {
+        modeTmp = mode;
+
+        if (modeTmp == 2/* && TODO: music playing*/)
+            ++modeTmp;
+
+        if (modeTmp == 2) {
+            gDPSetEnvColor(gDisplayListHead++, 95, 255, 95, sTextBaseAlpha);
+        }
+        else if (modeTmp == 3) {
+            gDPSetEnvColor(gDisplayListHead++, 255, 95, 95, sTextBaseAlpha);
+        }
+        else {
+            gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, sTextBaseAlpha);
+        }
+        // Mode names are centered correctly on US
+        textX = get_str_x_pos_from_center(mode * 53 + /*80*/ 54, textSoundTest[modeTmp], 10.0f);
+        // print_generic_string(textX, 87, textSoundModes[mode]);
+
+        print_generic_string(textX, 18, textSoundTest[modeTmp]);
+
+        ++modeTmp;
+    }
+
     gSPDisplayList(gDisplayListHead++, dl_ia_text_end);
+
+    gSPDisplayList(gDisplayListHead++, dl_rgba16_text_begin);
+    gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, sTextBaseAlpha);
+
+    if (seqNum == 0) { // NONE
+        musicStr[0] = 0x17;
+        musicStr[1] = 0x18;
+        musicStr[2] = 0x17;
+        musicStr[3] = 0x0E;
+        musicStr[4] = 0xFF;
+    }
+    else { // SEQ 0x..
+        musicStr[6] = ((u8) seqNum >> 4);
+        musicStr[7] = (seqNum & 0x0F);
+    }
+    print_hud_lut_string(HUD_LUT_DIFF, 12, 150, musicStr);
+
+    gSPDisplayList(gDisplayListHead++, dl_rgba16_text_end);
 }
 
 
@@ -2775,6 +2875,15 @@ Gfx *geo_file_select_strings_and_menu_cursor(s32 callContext, UNUSED struct Grap
         print_file_select_strings();
         print_menu_cursor();
     }
+
+    if (sAudioSwapTimer >= 0 && sAudioSwapTimer < 10) {
+        sAudioSwapTimer++;
+        if (sAudioSwapTimer == 10) {
+            set_background_music(0, seqNum, 0);
+            sAudioSwapTimer = -1;
+        }
+    }
+
     return NULL;
 }
 

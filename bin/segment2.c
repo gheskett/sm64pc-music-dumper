@@ -86,6 +86,10 @@ ALIGNED8 static const u8 texture_hud_char_I[] = {
 ALIGNED8 static const u8 texture_hud_char_J[] = {
 #include "textures/segment2/segment2.02600.rgba16.inc.c"
 };
+#else
+ALIGNED8 static const u8 texture_hud_char_J[] = {
+#include "textures/segment2/custom_j_hud.rgba16.inc.c"
+};
 #endif
 
 ALIGNED8 static const u8 texture_hud_char_K[] = {
@@ -116,6 +120,10 @@ ALIGNED8 static const u8 texture_hud_char_P[] = {
 ALIGNED8 static const u8 texture_hud_char_Q[] = {
 #include "textures/segment2/segment2.03400.rgba16.inc.c"
 };
+#else
+ALIGNED8 static const u8 texture_hud_char_Q[] = {
+#include "textures/segment2/custom_q_hud.rgba16.inc.c"
+};
 #endif
 
 ALIGNED8 static const u8 texture_hud_char_R[] = {
@@ -138,6 +146,10 @@ ALIGNED8 static const u8 texture_hud_char_U[] = {
 ALIGNED8 static const u8 texture_hud_char_V[] = {
 #include "textures/segment2/segment2.03E00.rgba16.inc.c"
 };
+#else
+ALIGNED8 static const u8 texture_hud_char_V[] = {
+#include "textures/segment2/custom_v_hud.rgba16.inc.c"
+};
 #endif
 
 ALIGNED8 static const u8 texture_hud_char_W[] = {
@@ -148,6 +160,10 @@ ALIGNED8 static const u8 texture_hud_char_W[] = {
 ALIGNED8 static const u8 texture_hud_char_X[] = {
 #include "textures/segment2/segment2.04200.rgba16.inc.c"
 };
+#else
+ALIGNED8 static const u8 texture_hud_char_X[] = {
+#include "textures/segment2/custom_x_hud.rgba16.inc.c"
+};
 #endif
 
 ALIGNED8 static const u8 texture_hud_char_Y[] = {
@@ -157,6 +173,10 @@ ALIGNED8 static const u8 texture_hud_char_Y[] = {
 #if defined(VERSION_JP) || defined(VERSION_EU) || defined(VERSION_SH)
 ALIGNED8 static const u8 texture_hud_char_Z[] = {
 #include "textures/segment2/segment2.04600.rgba16.inc.c"
+};
+#else
+ALIGNED8 static const u8 texture_hud_char_Z[] = {
+#include "textures/segment2/custom_z_hud.rgba16.inc.c"
 };
 #endif
 
@@ -194,6 +214,26 @@ ALIGNED8 static const u8 texture_hud_char_ampersand[] = {
 ALIGNED8 static const u8 texture_hud_char_percent[] = {
 #include "textures/segment2/segment2.05400.rgba16.inc.c"// JP %
 };
+#else
+ALIGNED8 static const u8 texture_hud_char_exclamation[] = {
+#include "textures/segment2/custom_exclamation.rgba16.inc.c"// JP !
+};
+
+ALIGNED8 static const u8 texture_hud_char_double_exclamation[] = {
+#include "textures/segment2/custom_double_question.rgba16.inc.c"// JP !!
+};
+
+ALIGNED8 static const u8 texture_hud_char_question[] = {
+#include "textures/segment2/segment2.05000.rgba16.inc.c"// JP ?
+};
+
+ALIGNED8 static const u8 texture_hud_char_ampersand[] = {
+#include "textures/segment2/custom_ampersand.rgba16.inc.c"// JP &
+};
+
+ALIGNED8 static const u8 texture_hud_char_percent[] = {
+#include "textures/segment2/custom_percent.rgba16.inc.c"// JP %
+};
 #endif
 
 ALIGNED8 static const u8 texture_hud_char_multiply[] = {
@@ -206,6 +246,10 @@ ALIGNED8 static const u8 texture_hud_char_coin[] = {
 
 ALIGNED8 static const u8 texture_hud_char_mario_head[] = {
 #include "textures/segment2/segment2.05A00.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 texture_hud_char_custom_music_note[] = {
+#include "textures/segment2/custom.segment2.music_note.rgba16.inc.c"
 };
 
 ALIGNED8 static const u8 texture_hud_char_star[] = {
@@ -1823,15 +1867,15 @@ const u8 *const main_hud_lut[] = {
     texture_hud_char_4, texture_hud_char_5, texture_hud_char_6, texture_hud_char_7,
     texture_hud_char_8, texture_hud_char_9, texture_hud_char_A, texture_hud_char_B,
     texture_hud_char_C, texture_hud_char_D, texture_hud_char_E, texture_hud_char_F,
-    texture_hud_char_G, texture_hud_char_H, texture_hud_char_I,               0x0,
+    texture_hud_char_G, texture_hud_char_H, texture_hud_char_I, texture_hud_char_J,
     texture_hud_char_K, texture_hud_char_L, texture_hud_char_M, texture_hud_char_N,
-    texture_hud_char_O, texture_hud_char_P,               0x0, texture_hud_char_R,
-    texture_hud_char_S, texture_hud_char_T, texture_hud_char_U,               0x0,
-    texture_hud_char_W,               0x0, texture_hud_char_Y,               0x0,
+    texture_hud_char_O, texture_hud_char_P, texture_hud_char_Q, texture_hud_char_R,
+    texture_hud_char_S, texture_hud_char_T, texture_hud_char_U, texture_hud_char_V,
+    texture_hud_char_W, texture_hud_char_X, texture_hud_char_Y, texture_hud_char_Z,
+    texture_hud_char_exclamation, texture_hud_char_double_exclamation, texture_hud_char_question, texture_hud_char_ampersand,
+    texture_hud_char_percent,        0x0,               0x0,               0x0,
                   0x0,               0x0,               0x0,               0x0,
-                  0x0,               0x0,               0x0,               0x0,
-                  0x0,               0x0,               0x0,               0x0,
-                  0x0,               0x0, texture_hud_char_multiply, texture_hud_char_coin,
+                  0x0, texture_hud_char_custom_music_note, texture_hud_char_multiply, texture_hud_char_coin,
     texture_hud_char_mario_head, texture_hud_char_star,               0x0,               0x0,
     texture_hud_char_apostrophe, texture_hud_char_double_quote,
 #else
