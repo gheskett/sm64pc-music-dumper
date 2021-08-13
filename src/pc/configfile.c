@@ -34,24 +34,24 @@ struct ConfigOption {
 bool configFullscreen            = false;
 int configMaxSpeedupFrameRate    = -1;
 // Keyboard mappings (scancode values)
-unsigned int configKeyA          = 0x4F;
-unsigned int configKeyB          = 0x50;
+unsigned int configKeyA          = 0x32;
+unsigned int configKeyB          = 0x31;
 unsigned int configKeyStart      = 0x1C;
 unsigned int configKeyR          = 0x12;
 unsigned int configKeyL          = 0x10;
 unsigned int configKeyZ          = 0x39;
-unsigned int configKeyCUp        = 0x48;
-unsigned int configKeyCDown      = 0x4C;
-unsigned int configKeyCLeft      = 0x4B;
-unsigned int configKeyCRight     = 0x4D;
+unsigned int configKeyCUp        = 0x148;
+unsigned int configKeyCDown      = 0x150;
+unsigned int configKeyCLeft      = 0x14B;
+unsigned int configKeyCRight     = 0x14D;
 unsigned int configKeyStickUp    = 0x11;
 unsigned int configKeyStickDown  = 0x1F;
 unsigned int configKeyStickLeft  = 0x1E;
 unsigned int configKeyStickRight = 0x20;
-unsigned int configKeyDUp        = 0x148;
-unsigned int configKeyDDown      = 0x150;
-unsigned int configKeyDLeft      = 0x14B;
-unsigned int configKeyDRight     = 0x14D;
+unsigned int configKeyDUp        = 0x48;
+unsigned int configKeyDDown      = 0x50;
+unsigned int configKeyDLeft      = 0x4B;
+unsigned int configKeyDRight     = 0x4D;
 unsigned int configSpeedupKey    = 0x0F;
 
 
