@@ -52,12 +52,18 @@ static s16 sSoundTextX;
 #define NUM_BUTTONS MENU_BUTTON_OPTION_MAX
 #endif
 
+#define HOLD_TIMER_LIMIT 6 * 2
+
 // Amount of main menu buttons defined in the code called by spawn_object_rel_with_rot.
 // See file_select.h for the names in MenuButtonTypes.
 static struct Object *sMainMenuButtons[NUM_BUTTONS];
 
 static u8 seqNum = 0x00;
 static s16 sAudioSwapTimer = -1;
+static u8 instAudioSwap = FALSE;
+
+static u8 holdTimerLimit = HOLD_TIMER_LIMIT;
+static u8 holdTimer = HOLD_TIMER_LIMIT;
 
 // Used to defined yes/no fade colors after a file is selected in the erase menu.
 // sYesNoColor[0]: YES | sYesNoColor[1]: NO
@@ -81,6 +87,7 @@ static s16 sCursorClickingTimer = 0;
 
 // Equal to sCursorPos if the cursor gets clicked, {-10000, -10000} otherwise.
 static s16 sClickPos[] = {-10000, -10000};
+static s16 sHeldPos[] = {-10000, -10000};
 
 // Used for determining which file has been selected during copying and erasing.
 static s8 sSelectedFileIndex = -1;
@@ -157,7 +164,7 @@ static unsigned char textEraseFileButton[][16] = { {TEXT_ERASE_FILE}, {TEXT_ERAS
 
 #ifndef VERSION_EU
 static unsigned char textSoundModes[][8] = { { TEXT_STEREO }, { TEXT_MONO }, { TEXT_HEADSET } };
-static unsigned char textSoundTest[][5] = { { TEXT_PREV }, { TEXT_NEXT }, { TEXT_PLAY }, { TEXT_STOP } };
+static unsigned char textSoundTest[][6] = { { TEXT_PREV }, { TEXT_NEXT }, { TEXT_PLAY }, { TEXT_STOP }, { TEXT_PITCH }, { TEXT_PITCH_ACT }, { TEXT_TEMPO }, { TEXT_TEMPO_ACT } };
 #endif
 
 static unsigned char textMarioA[] = { TEXT_FILE_MARIO_A };
@@ -324,6 +331,25 @@ s32 check_clicked_button(s16 x, s16 y, f32 depth) {
     s16 minY = newY - 21.0f;
 
     if (sClickPos[0] < maxX && minX < sClickPos[0] && sClickPos[1] < maxY && minY < sClickPos[1]) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/**
+ * Check if a button was held.
+ * depth = 200.0 for main menu, 22.0 for submenus.
+ */
+s32 check_held_button(s16 x, s16 y, f32 depth) {
+    f32 a = 52.4213;
+    f32 newX = ((f32) x * 160.0) / (a * depth);
+    f32 newY = ((f32) y * 120.0) / (a * 3 / 4 * depth);
+    s16 maxX = newX + 25.0f;
+    s16 minX = newX - 25.0f;
+    s16 maxY = newY + 21.0f;
+    s16 minY = newY - 21.0f;
+
+    if (sHeldPos[0] < maxX && minX < sHeldPos[0] && sHeldPos[1] < maxY && minY < sHeldPos[1]) {
         return TRUE;
     }
     return FALSE;
@@ -1089,6 +1115,23 @@ void render_sound_mode_menu_buttons(struct Object *soundModeButton) {
         soundModeButton, MODEL_MAIN_MENU_GENERIC_BUTTON, bhvMenuButton, 0, SOUND_BUTTON_Y - 800, -100, 0, -0x8000, 0);
     sMainMenuButtons[MENU_BUTTON_PLAYSTOP]->oMenuButtonScale = 0.11111111f;
 
+    // Increase Pitch Button
+    sMainMenuButtons[MENU_BUTTON_PITCH_UP] = spawn_object_rel_with_rot(
+        soundModeButton, MODEL_NONE, bhvMenuButton, -384, SOUND_BUTTON_Y - 592, -100, 0, -0x8000, 0);
+    sMainMenuButtons[MENU_BUTTON_PITCH_UP]->oMenuButtonScale = 0.11111111f;
+    // Decrease Pitch Button
+    sMainMenuButtons[MENU_BUTTON_PITCH_DOWN] = spawn_object_rel_with_rot(
+        soundModeButton, MODEL_NONE, bhvMenuButton, -384, SOUND_BUTTON_Y - 1032, -100, 0, -0x8000, 0);
+    sMainMenuButtons[MENU_BUTTON_PITCH_DOWN]->oMenuButtonScale = 0.11111111f;
+    // Increase Tempo Button
+    sMainMenuButtons[MENU_BUTTON_TEMPO_UP] = spawn_object_rel_with_rot(
+        soundModeButton, MODEL_NONE, bhvMenuButton, -768, SOUND_BUTTON_Y - 592, -100, 0, -0x8000, 0);
+    sMainMenuButtons[MENU_BUTTON_TEMPO_UP]->oMenuButtonScale = 0.11111111f;
+    // Decrease Tempo Button
+    sMainMenuButtons[MENU_BUTTON_TEMPO_DOWN] = spawn_object_rel_with_rot(
+        soundModeButton, MODEL_NONE, bhvMenuButton, -768, SOUND_BUTTON_Y - 1032, -100, 0, -0x8000, 0);
+    sMainMenuButtons[MENU_BUTTON_TEMPO_DOWN]->oMenuButtonScale = 0.11111111f;
+
 #ifdef VERSION_EU
     // English option button
     sMainMenuButtons[MENU_BUTTON_LANGUAGE_ENGLISH] = spawn_object_rel_with_rot(
@@ -1118,6 +1161,10 @@ void render_sound_mode_menu_buttons(struct Object *soundModeButton) {
  * In the sound mode menu, checks if a button was clicked to change sound mode & button state.
  */
 void check_sound_mode_menu_clicked_buttons(struct Object *soundModeButton) {
+    s32 newPitch;
+    s32 newTempo;
+    u8 letGo = TRUE;
+
     if (soundModeButton->oMenuButtonState == MENU_BUTTON_STATE_FULLSCREEN) {
         s32 buttonID;
         // Configure sound mode menu button group
@@ -1126,6 +1173,8 @@ void check_sound_mode_menu_clicked_buttons(struct Object *soundModeButton) {
             s16 buttonY = sMainMenuButtons[buttonID]->oPosY;
 
             if (check_clicked_button(buttonX, buttonY, 22.0f) == TRUE) {
+                letGo = 2;
+
                 // If sound mode button clicked, select it and define sound mode
                 // The check will always be true because of the group configured above (In JP & US)
                 if (buttonID == MENU_BUTTON_STEREO || buttonID == MENU_BUTTON_MONO
@@ -1182,10 +1231,59 @@ void check_sound_mode_menu_clicked_buttons(struct Object *soundModeButton) {
                 }
 #endif
                 sCurrentMenuLevel = MENU_LAYER_SUBMENU;
-
-                break;
             }
+            if (check_held_button(buttonX, buttonY, 22.0f) == TRUE) {
+                letGo = FALSE;
+                if (buttonID == MENU_BUTTON_PITCH_UP || buttonID == MENU_BUTTON_PITCH_DOWN || buttonID == MENU_BUTTON_TEMPO_UP || buttonID == MENU_BUTTON_TEMPO_DOWN) {
+                    if (holdTimer < holdTimerLimit) {
+                        holdTimer++;
+                        break;
+                    }
+                    holdTimerLimit /= 2;
+                    holdTimer = 0;
+
+                    if (buttonID == MENU_BUTTON_PITCH_UP || buttonID == MENU_BUTTON_PITCH_DOWN) {
+                        newPitch = (s32) (get_playback_frequency() * 100.0f + 0.5f);
+                        if (buttonID == MENU_BUTTON_PITCH_UP)
+                            newPitch++;
+                        else
+                            newPitch--;
+
+                        if (newPitch > 400)
+                            newPitch = 400;
+                        else if (newPitch < 0)
+                            newPitch = 0;
+                            
+                        change_playback_frequency((f32) newPitch / 100.0f);
+                    }
+                    else {
+                        newTempo = (s32) (get_playback_tempo() * 100.0f + 0.5f);
+                        if (buttonID == MENU_BUTTON_TEMPO_UP)
+                            newTempo++;
+                        else
+                            newTempo--;
+                            
+                        if (newTempo > 400)
+                            newTempo = 400;
+                        else if (newTempo < 0)
+                            newTempo = 0;
+
+                        change_playback_tempo((f32) newTempo / 100.0f);
+                    }
+                }
+                
+                sCurrentMenuLevel = MENU_LAYER_SUBMENU;
+            }
+
+            if (letGo != TRUE)
+                break;
         }
+    }
+    if (letGo != FALSE) {
+        holdTimerLimit = HOLD_TIMER_LIMIT;
+        holdTimer = HOLD_TIMER_LIMIT;
+        sHeldPos[0] = -10000;
+        sHeldPos[1] = -10000;
     }
 }
 
@@ -1668,11 +1766,31 @@ void bhv_menu_button_manager_loop(void) {
             break;
         case MENU_BUTTON_PLAYSTOP:
             break;
+        case MENU_BUTTON_PITCH_UP:
+            break;
+        case MENU_BUTTON_PITCH_DOWN:
+            break;
+        case MENU_BUTTON_TEMPO_UP:
+            break;
+        case MENU_BUTTON_TEMPO_DOWN:
+            break;
 #endif
     }
 
     sClickPos[0] = -10000;
     sClickPos[1] = -10000;
+
+    if (!(gPlayer3Controller->buttonDown
+#ifdef VERSION_EU
+            & (A_BUTTON | B_BUTTON | START_BUTTON | Z_TRIG)) {
+#else
+            & (A_BUTTON | B_BUTTON | START_BUTTON))) {
+#endif
+        holdTimerLimit = HOLD_TIMER_LIMIT;
+        holdTimer = HOLD_TIMER_LIMIT;
+        sHeldPos[0] = -10000;
+        sHeldPos[1] = -10000;
+    }
 }
 
 /**
@@ -1706,7 +1824,18 @@ void handle_cursor_button_input(void) {
 #endif
             sClickPos[0] = sCursorPos[0];
             sClickPos[1] = sCursorPos[1];
+            sHeldPos[0] = sCursorPos[0];
+            sHeldPos[1] = sCursorPos[1];
             sCursorClickingTimer = 1;
+        }
+        else if (gPlayer3Controller->buttonDown
+#ifdef VERSION_EU
+            & (A_BUTTON | B_BUTTON | START_BUTTON | Z_TRIG)) {
+#else
+            & (A_BUTTON | B_BUTTON | START_BUTTON) && sHeldPos[0] != -10000 && sHeldPos[1] != -10000) {
+#endif
+            sHeldPos[0] = sCursorPos[0];
+            sHeldPos[1] = sCursorPos[1];
         }
     }
 }
@@ -1731,18 +1860,18 @@ void handle_controller_cursor_input(void) {
     sCursorPos[1] += rawStickY / 8;
 
     // Stop cursor from going offscreen
-    if (sCursorPos[0] > 132.0f) {
-        sCursorPos[0] = 132.0f;
+    if (sCursorPos[0] > 160.0f) {
+        sCursorPos[0] = 160.0f;
     }
-    if (sCursorPos[0] < -132.0f) {
-        sCursorPos[0] = -132.0f;
+    if (sCursorPos[0] < -160.0f) {
+        sCursorPos[0] = -160.0f;
     }
 
-    if (sCursorPos[1] > 90.0f) {
-        sCursorPos[1] = 90.0f;
+    if (sCursorPos[1] > 120.0f) {
+        sCursorPos[1] = 120.0f;
     }
-    if (sCursorPos[1] < -90.0f) {
-        sCursorPos[1] = -90.0f;
+    if (sCursorPos[1] < -120.0f) {
+        sCursorPos[1] = -120.0f;
     }
 
     if (sCursorClickingTimer == 0) {
@@ -2538,6 +2667,65 @@ void print_erase_menu_strings(void) {
     #define SOUND_HUD_X 88
 #endif
 
+void update_pitch_tempo_strings() {
+    u32 pitch = (u32) (get_playback_frequency() * 100);
+    u32 tempo = (u32) (get_playback_tempo() * 100);
+
+    if (pitch > 999)
+        pitch = 999;
+    if (tempo > 999)
+        tempo = 999;
+
+    textSoundTest[5][1] = pitch / 100;
+    textSoundTest[7][1] = tempo / 100;
+    
+    textSoundTest[5][3] = (pitch / 10) % 10;
+    textSoundTest[7][3] = (tempo / 10) % 10;
+
+    textSoundTest[5][4] = pitch % 10;
+    textSoundTest[7][4] = tempo % 10;
+}
+
+// There's probably a less terrible way to write this, but it'll do for now...
+void print_up_down_arrows() {
+    u8 printUpStr[2] = {GLYPH_UP, 0xFF};
+    u8 printDownStr[2] = {GLYPH_DOWN, 0xFF};
+
+    gSPDisplayList(gDisplayListHead++, dl_rgba16_text_begin);
+
+    if ((s32) (get_playback_frequency() * 100.0f + 0.5f) == 400) {
+        gDPSetEnvColor(gDisplayListHead++, 127, 127, 127, sTextBaseAlpha * 0.5f);
+    }
+    else {
+        gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, sTextBaseAlpha);
+    }
+    print_hud_lut_string(HUD_LUT_GLOBAL, 206, 159 + BORDER_HEIGHT, printUpStr);
+
+    if ((s32) (get_playback_frequency() * 100.0f + 0.5f) == 0) {
+        gDPSetEnvColor(gDisplayListHead++, 127, 127, 127, sTextBaseAlpha * 0.5f);
+    }
+    else {
+        gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, sTextBaseAlpha);
+    }
+    print_hud_lut_string(HUD_LUT_GLOBAL, 206, 212 + BORDER_HEIGHT, printDownStr);
+
+    if ((s32) (get_playback_tempo() * 100.0f + 0.5f) == 400) {
+        gDPSetEnvColor(gDisplayListHead++, 127, 127, 127, sTextBaseAlpha * 0.5f);
+    }
+    else {
+        gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, sTextBaseAlpha);
+    }
+    print_hud_lut_string(HUD_LUT_GLOBAL, 258, 159 + BORDER_HEIGHT, printUpStr);
+
+    if ((s32) (get_playback_tempo() * 100.0f + 0.5f) == 0) {
+        gDPSetEnvColor(gDisplayListHead++, 127, 127, 127, sTextBaseAlpha * 0.5f);
+    }
+    else {
+        gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, sTextBaseAlpha);
+    }
+    print_hud_lut_string(HUD_LUT_GLOBAL, 258, 212 + BORDER_HEIGHT, printDownStr);
+}
+
 /**
  * Prints sound mode menu strings that shows on the purple background menu screen.
  *
@@ -2547,6 +2735,7 @@ void print_sound_mode_menu_strings(void) {
     s32 mode;
     u8 musicStr[9] = {0x1C, 0x0E, 0x1A, GLYPH_NONTERMINATING_SPACE, 0x00, 0x32, 0x00, 0x00, 0xFF}; // "SEQ 0x00";
     s32 modeTmp;
+    s32 printY = 18;
 
 #if defined(VERSION_US) || defined(VERSION_SH)
     s16 textX;
@@ -2603,7 +2792,7 @@ void print_sound_mode_menu_strings(void) {
         if (mode == sSoundMode) {
             gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, sTextBaseAlpha);
         } else {
-            gDPSetEnvColor(gDisplayListHead++, 0, 0, 0, sTextBaseAlpha);
+            gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, sTextBaseAlpha * 0.5f);
         }
         #ifndef VERSION_JP
             // Mode names are centered correctly on US and Shindou
@@ -2621,15 +2810,27 @@ void print_sound_mode_menu_strings(void) {
     print_generic_string(182, 29, textReturn[sLanguageMode]);
 #endif
 
+    update_pitch_tempo_strings();
+
     // Print sound string stuffs
-    for (mode = 0; mode < 3; ++mode) {
+    for (mode = 0; mode < 5; ++mode) {
         modeTmp = mode;
+
+        // There's definitely a better way to do this...
+        if (mode > 2) {
+            modeTmp++;
+            if (mode == 3)
+                printY += 28;
+        }
+        if (mode > 3)
+            modeTmp++;
 
         if (modeTmp == 2 && (gSequencePlayers[SEQ_PLAYER_LEVEL].enabled || sAudioSwapTimer >= 0))
             ++modeTmp;
 
         if (modeTmp == 2) {
             gDPSetEnvColor(gDisplayListHead++, 95, 255, 95, sTextBaseAlpha);
+            instAudioSwap = TRUE;
         }
         else if (modeTmp == 3) {
             gDPSetEnvColor(gDisplayListHead++, 255, 95, 95, sTextBaseAlpha);
@@ -2641,10 +2842,14 @@ void print_sound_mode_menu_strings(void) {
         textX = get_str_x_pos_from_center(mode * 53 + /*80*/ 54, textSoundTest[modeTmp], 10.0f);
         // print_generic_string(textX, 87, textSoundModes[mode]);
 
-        print_generic_string(textX, 18, textSoundTest[modeTmp]);
-
-        ++modeTmp;
+        print_generic_string(textX, printY, textSoundTest[modeTmp]);
+        if (mode >= 3 && mode < 5) {
+            gDPSetEnvColor(gDisplayListHead++, 191, 191, 255, sTextBaseAlpha);
+            print_generic_string(textX, printY - 16, textSoundTest[modeTmp + 1]);
+        }
     }
+
+    print_up_down_arrows();
 
     gSPDisplayList(gDisplayListHead++, dl_ia_text_end);
 
@@ -2662,7 +2867,7 @@ void print_sound_mode_menu_strings(void) {
         musicStr[6] = ((u8) seqNum >> 4);
         musicStr[7] = (seqNum & 0x0F);
     }
-    print_hud_lut_string(HUD_LUT_DIFF, 12, 150, musicStr);
+    print_hud_lut_string(HUD_LUT_DIFF, /*12*/ 34, 150, musicStr);
 
     gSPDisplayList(gDisplayListHead++, dl_rgba16_text_end);
 }
@@ -2959,11 +3164,12 @@ Gfx *geo_file_select_strings_and_menu_cursor(s32 callContext, UNUSED struct Grap
 
     if (sAudioSwapTimer >= 0 && sAudioSwapTimer < 10) {
         sAudioSwapTimer++;
-        if (sAudioSwapTimer == 10) {
+        if (sAudioSwapTimer == 10 || instAudioSwap) {
             if (seqNum > 0)
                 set_background_music(0, seqNum, 0);
             sAudioSwapTimer = -1;
         }
+        instAudioSwap = FALSE;
     }
 
     return NULL;
@@ -3002,8 +3208,13 @@ s32 lvl_init_menu_values_and_cursor_pos(UNUSED s32 arg, UNUSED s32 unused) {
             sCursorPos[1] = 5.0f;
             break;
     }
+    holdTimerLimit = HOLD_TIMER_LIMIT;
+    holdTimer = HOLD_TIMER_LIMIT;
     sClickPos[0] = -10000;
     sClickPos[1] = -10000;
+    sHeldPos[0] = -10000;
+    sHeldPos[1] = -10000;
+    seqNum = get_current_background_music() & 0xFF;
     sCursorClickingTimer = 0;
     sSelectedFileNum = 0;
     sSelectedFileIndex = MENU_BUTTON_NONE;

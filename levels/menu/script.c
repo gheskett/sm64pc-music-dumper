@@ -34,6 +34,8 @@ const LevelScript level_main_menu_entry_1[] = {
     LOAD_MODEL_FROM_GEO(MODEL_MAIN_MENU_MARIO_NEW_BUTTON_FADE,  geo_menu_mario_new_button_fade),
     LOAD_MODEL_FROM_GEO(MODEL_MAIN_MENU_PURPLE_SOUND_BUTTON,    geo_menu_sound_button),
     LOAD_MODEL_FROM_GEO(MODEL_MAIN_MENU_GENERIC_BUTTON,         geo_menu_generic_button),
+    LOAD_MODEL_FROM_GEO(MODEL_MAIN_MENU_UP_BUTTON,              geo_menu_up_button),
+    LOAD_MODEL_FROM_GEO(MODEL_MAIN_MENU_DOWN_BUTTON,            geo_menu_down_button),
 
     AREA(/*index*/ 1, geo_menu_file_select_strings_and_menu_cursor),
         OBJECT(/*model*/ MODEL_NONE,         /*pos*/ 0, 0, -19000, /*angle*/ 0, 0, 0, /*behParam*/ 0x04000000, /*beh*/ bhvMenuButtonManager),

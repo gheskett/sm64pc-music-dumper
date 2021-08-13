@@ -287,6 +287,7 @@ struct SequencePlayer
     /*     , 0x007, 0x007*/ s8 seqVariationEu[1];
 #endif
     /*0x00A, 0x008*/ u16 tempo; // beats per minute in JP, tatums per minute in US/EU
+    /*0x00A, 0x008*/ u16 tempoSafe; // beats per minute in JP, tatums per minute in US/EU
     /*0x00C, 0x00A*/ u16 tempoAcc;
 #if defined(VERSION_JP) || defined(VERSION_US)
     /*0x00E, 0x010*/ u16 fadeRemainingFrames;

@@ -139,6 +139,30 @@ const GeoLayout geo_menu_generic_button[] = {
    GEO_END(),
 };
 
+// 0x0E000358
+const GeoLayout geo_menu_up_button[] = {
+   GEO_NODE_START(),
+   GEO_OPEN_NODE(),
+      GEO_SCALE(0x00, 524288),
+      GEO_OPEN_NODE(),
+         GEO_DISPLAY_LIST(LAYER_OPAQUE, dl_menu_up_button),
+      GEO_CLOSE_NODE(),
+   GEO_CLOSE_NODE(),
+   GEO_END(),
+};
+
+// 0x0E000358
+const GeoLayout geo_menu_down_button[] = {
+   GEO_NODE_START(),
+   GEO_OPEN_NODE(),
+      GEO_SCALE(0x00, 524288),
+      GEO_OPEN_NODE(),
+         GEO_DISPLAY_LIST(LAYER_OPAQUE, dl_menu_down_button),
+      GEO_CLOSE_NODE(),
+   GEO_CLOSE_NODE(),
+   GEO_END(),
+};
+
 // 0x0E000380
 const GeoLayout geo_menu_file_select_strings_and_menu_cursor[] = {
    GEO_NODE_SCREEN_AREA(10, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, SCREEN_WIDTH/2, SCREEN_HEIGHT/2),

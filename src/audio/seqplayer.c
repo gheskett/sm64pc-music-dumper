@@ -6,6 +6,7 @@
 #include "heap.h"
 #include "load.h"
 #include "seqplayer.h"
+#include "seq_ids.h"
 
 #define PORTAMENTO_IS_SPECIAL(x) ((x).mode & 0x80)
 #define PORTAMENTO_MODE(x) ((x).mode & ~0x80)
@@ -2344,395 +2345,403 @@ void sequence_player_process_sequence(struct SequencePlayer *seqPlayer) {
 #ifdef VERSION_SH
     seqPlayer->tempoAcc += seqPlayer->tempoAdd;
 #endif
-    if (seqPlayer->tempoAcc < gTempoInternalToExternal) {
-        return;
-    }
-    seqPlayer->tempoAcc -= (u16) gTempoInternalToExternal;
-
-    state = &seqPlayer->scriptState;
-    if (seqPlayer->delay > 1) {
-#ifndef AVOID_UB
-        if (temp) {
+    while (TRUE) {
+        if (seqPlayer->tempoAcc < gTempoInternalToExternal) {
+            return;
         }
+        seqPlayer->tempoAcc -= (u16) gTempoInternalToExternal;
+
+        state = &seqPlayer->scriptState;
+        if (seqPlayer->delay > 1) {
+#ifndef AVOID_UB
+            if (temp) {
+            }
 #endif
-        seqPlayer->delay--;
-    } else {
+            seqPlayer->delay--;
+        } else {
 #if defined(VERSION_EU) || defined(VERSION_SH)
-        seqPlayer->recalculateVolume = 1;
+            seqPlayer->recalculateVolume = 1;
 #endif
-        for (;;) {
-            cmd = m64_read_u8(state);
-            if (cmd == 0xff) // seq_end
-            {
-                if (state->depth == 0) {
-                    sequence_player_disable(seqPlayer);
+            for (;;) {
+                cmd = m64_read_u8(state);
+                if (cmd == 0xff) // seq_end
+                {
+                    if (state->depth == 0) {
+                        sequence_player_disable(seqPlayer);
+                        break;
+                    }
+#if defined(VERSION_EU) || defined(VERSION_SH)
+                    state->pc = state->stack[--state->depth];
+#else
+                    state->depth--, state->pc = state->stack[state->depth];
+#endif
+                }
+
+                if (cmd == 0xfd) // seq_delay
+                {
+                    seqPlayer->delay = m64_read_compressed_u16(state);
                     break;
                 }
-#if defined(VERSION_EU) || defined(VERSION_SH)
-                state->pc = state->stack[--state->depth];
-#else
-                state->depth--, state->pc = state->stack[state->depth];
-#endif
-            }
 
-            if (cmd == 0xfd) // seq_delay
-            {
-                seqPlayer->delay = m64_read_compressed_u16(state);
-                break;
-            }
+                if (cmd == 0xfe) // seq_delay1
+                {
+                    seqPlayer->delay = 1;
+                    break;
+                }
 
-            if (cmd == 0xfe) // seq_delay1
-            {
-                seqPlayer->delay = 1;
-                break;
-            }
-
-            if (cmd >= 0xc0) {
-                switch (cmd) {
-                    case 0xff: // seq_end
-                        break;
-
-                    case 0xfc: // seq_call
-                        u16v = m64_read_s16(state);
-                        if (0 && state->depth >= 4) {
-                            eu_stubbed_printf_0("Macro Level Over Error!\n");
-                        }
-#if defined(VERSION_EU) || defined(VERSION_SH)
-                        state->stack[state->depth++] = state->pc;
-#else
-                        state->depth++, state->stack[state->depth - 1] = state->pc;
-#endif
-                        state->pc = seqPlayer->seqData + u16v;
-                        break;
-
-                    case 0xf8: // seq_loop; loop start, N iterations (or 256 if N = 0)
-                        if (0 && state->depth >= 4) {
-                            eu_stubbed_printf_0("Macro Level Over Error!\n");
-                        }
-                        state->remLoopIters[state->depth] = m64_read_u8(state);
-#if defined(VERSION_EU) || defined(VERSION_SH)
-                        state->stack[state->depth++] = state->pc;
-#else
-                        state->depth++, state->stack[state->depth - 1] = state->pc;
-#endif
-                        break;
-
-                    case 0xf7: // seq_loopend
-                        state->remLoopIters[state->depth - 1]--;
-                        if (state->remLoopIters[state->depth - 1] != 0) {
-                            state->pc = state->stack[state->depth - 1];
-                        } else {
-                            state->depth--;
-                        }
-                        break;
-
-                    case 0xfb: // seq_jump
-                    case 0xfa: // seq_beqz; jump if == 0
-                    case 0xf9: // seq_bltz; jump if < 0
-                    case 0xf5: // seq_bgez; jump if >= 0
-                        u16v = m64_read_s16(state);
-                        if (cmd == 0xfa && value != 0) {
+                if (cmd >= 0xc0) {
+                    switch (cmd) {
+                        case 0xff: // seq_end
                             break;
-                        }
-                        if (cmd == 0xf9 && value >= 0) {
-                            break;
-                        }
-                        if (cmd == 0xf5 && value < 0) {
-                            break;
-                        }
-                        state->pc = seqPlayer->seqData + u16v;
-                        break;
 
+                        case 0xfc: // seq_call
+                            u16v = m64_read_s16(state);
+                            if (0 && state->depth >= 4) {
+                                eu_stubbed_printf_0("Macro Level Over Error!\n");
+                            }
 #if defined(VERSION_EU) || defined(VERSION_SH)
-                    case 0xf4:
-                    case 0xf3:
-                    case 0xf2:
-                        temp = m64_read_u8(state);
-                        if (cmd == 0xf3 && value != 0) {
-                            break;
-                        }
-                        if (cmd == 0xf2 && value >= 0) {
-                            break;
-                        }
-                        state->pc += (s8) temp;
-                        break;
-#endif
-
-#if defined(VERSION_EU) || defined(VERSION_SH)
-                    case 0xf1: // seq_reservenotes
+                            state->stack[state->depth++] = state->pc;
 #else
-                    case 0xf2: // seq_reservenotes
+                            state->depth++, state->stack[state->depth - 1] = state->pc;
 #endif
-                        note_pool_clear(&seqPlayer->notePool);
-                        note_pool_fill(&seqPlayer->notePool, m64_read_u8(state));
-                        break;
+                            state->pc = seqPlayer->seqData + u16v;
+                            break;
+
+                        case 0xf8: // seq_loop; loop start, N iterations (or 256 if N = 0)
+                            if (0 && state->depth >= 4) {
+                                eu_stubbed_printf_0("Macro Level Over Error!\n");
+                            }
+                            state->remLoopIters[state->depth] = m64_read_u8(state);
+#if defined(VERSION_EU) || defined(VERSION_SH)
+                            state->stack[state->depth++] = state->pc;
+#else
+                            state->depth++, state->stack[state->depth - 1] = state->pc;
+#endif
+                            break;
+
+                        case 0xf7: // seq_loopend
+                            state->remLoopIters[state->depth - 1]--;
+                            if (state->remLoopIters[state->depth - 1] != 0) {
+                                state->pc = state->stack[state->depth - 1];
+                            } else {
+                                state->depth--;
+                            }
+                            break;
+
+                        case 0xfb: // seq_jump
+                        case 0xfa: // seq_beqz; jump if == 0
+                        case 0xf9: // seq_bltz; jump if < 0
+                        case 0xf5: // seq_bgez; jump if >= 0
+                            u16v = m64_read_s16(state);
+                            if (cmd == 0xfa && value != 0) {
+                                break;
+                            }
+                            if (cmd == 0xf9 && value >= 0) {
+                                break;
+                            }
+                            if (cmd == 0xf5 && value < 0) {
+                                break;
+                            }
+                            state->pc = seqPlayer->seqData + u16v;
+                            break;
 
 #if defined(VERSION_EU) || defined(VERSION_SH)
-                    case 0xf0: // seq_unreservenotes
-#else
-                    case 0xf1: // seq_unreservenotes
+                        case 0xf4:
+                        case 0xf3:
+                        case 0xf2:
+                            temp = m64_read_u8(state);
+                            if (cmd == 0xf3 && value != 0) {
+                                break;
+                            }
+                            if (cmd == 0xf2 && value >= 0) {
+                                break;
+                            }
+                            state->pc += (s8) temp;
+                            break;
 #endif
-                        note_pool_clear(&seqPlayer->notePool);
-                        break;
 
-                    case 0xdf: // seq_transpose; set transposition in semitones
-                        seqPlayer->transposition = 0;
-                        // fallthrough
+#if defined(VERSION_EU) || defined(VERSION_SH)
+                        case 0xf1: // seq_reservenotes
+#else
+                        case 0xf2: // seq_reservenotes
+#endif
+                            note_pool_clear(&seqPlayer->notePool);
+                            note_pool_fill(&seqPlayer->notePool, m64_read_u8(state));
+                            break;
 
-                    case 0xde: // seq_transposerel; add transposition
-                        seqPlayer->transposition += (s8) m64_read_u8(state);
-                        break;
+#if defined(VERSION_EU) || defined(VERSION_SH)
+                        case 0xf0: // seq_unreservenotes
+#else
+                        case 0xf1: // seq_unreservenotes
+#endif
+                            note_pool_clear(&seqPlayer->notePool);
+                            break;
 
-                    case 0xdd: // seq_settempo (bpm)
+                        case 0xdf: // seq_transpose; set transposition in semitones
+                            seqPlayer->transposition = 0;
+                            // fallthrough
+
+                        case 0xde: // seq_transposerel; add transposition
+                            seqPlayer->transposition += (s8) m64_read_u8(state);
+                            break;
+
+                        case 0xdd: // seq_settempo (bpm)
 #ifndef VERSION_SH
-                    case 0xdc: // seq_addtempo (bpm)
+                        case 0xdc: // seq_addtempo (bpm)
 #endif
 #ifdef VERSION_SH
-                        seqPlayer->tempo = m64_read_u8(state) * TEMPO_SCALE;
+                            seqPlayer->tempo = m64_read_u8(state) * TEMPO_SCALE;
 #else
-                        temp = m64_read_u8(state);
-                        if (cmd == 0xdd) {
-                            seqPlayer->tempo = temp * TEMPO_SCALE;
-                        } else {
-                            seqPlayer->tempo += (s8) temp * TEMPO_SCALE;
-                        }
+                            temp = m64_read_u8(state);
+                            if (cmd == 0xdd) {
+                                seqPlayer->tempo = temp * TEMPO_SCALE * get_playback_tempo();
+                                seqPlayer->tempoSafe = temp * TEMPO_SCALE;
+                            } else {
+                                seqPlayer->tempo += (s8) temp * TEMPO_SCALE * get_playback_tempo();
+                                seqPlayer->tempoSafe += (s8) temp * TEMPO_SCALE;
+                            }
 #endif
 
-                        if (seqPlayer->tempo > gTempoInternalToExternal) {
-                            seqPlayer->tempo = gTempoInternalToExternal;
-                        }
+                            if (seqPlayer->tempo > gTempoInternalToExternal) {
+                                seqPlayer->tempo = gTempoInternalToExternal * get_playback_tempo();
+                                seqPlayer->tempoSafe = gTempoInternalToExternal;
+                            }
 
-                        //if (cmd){}
+                            if ((s16) seqPlayer->tempo <= 0) {
+                                seqPlayer->tempo = 0;
+                                seqPlayer->tempoSafe = 0;
+                            }
 
-                        if ((s16) seqPlayer->tempo <= 0) {
-                            seqPlayer->tempo = 1;
-                        }
-                        break;
+                            if (seqPlayer->defaultBank[0] <= BNK_SOUND_MARIO_PEACH)
+                                seqPlayer->tempo = seqPlayer->tempoSafe;
+
+                            break;
 
 #ifdef VERSION_SH
-                    case 0xdc: // seq_addtempo (bpm)
-                        seqPlayer->tempoAdd = (s8) m64_read_u8(state) * TEMPO_SCALE;
-                        break;
+                        case 0xdc: // seq_addtempo (bpm)
+                            seqPlayer->tempoAdd = (s8) m64_read_u8(state) * TEMPO_SCALE;
+                            break;
 #endif
 
 #if defined(VERSION_EU) || defined(VERSION_SH)
-                    case 0xda:
-                        cmd = m64_read_u8(state);
-                        u16v = m64_read_s16(state);
-                        switch (cmd) {
-                            case SEQUENCE_PLAYER_STATE_0:
-                            case SEQUENCE_PLAYER_STATE_FADE_OUT:
-                                if (seqPlayer->state != SEQUENCE_PLAYER_STATE_2) {
-                                    seqPlayer->fadeTimerUnkEu = u16v;
-                                    seqPlayer->state = cmd;
-                                }
-                                break;
-                            case SEQUENCE_PLAYER_STATE_2:
-                                seqPlayer->fadeRemainingFrames = u16v;
-                                seqPlayer->state = cmd;
-                                seqPlayer->fadeVelocity =
-                                    (0.0f - seqPlayer->fadeVolume) / (s32)(u16v & 0xFFFFu);
-                                break;
-                        }
-                        break;
-
-                    case 0xdb:
-                        temp32 = m64_read_u8(state);
-                        switch (seqPlayer->state) {
-                            case SEQUENCE_PLAYER_STATE_2:
-                                break;
-                            case SEQUENCE_PLAYER_STATE_FADE_OUT:
-                                seqPlayer->state = SEQUENCE_PLAYER_STATE_0;
-                                seqPlayer->fadeVolume = 0.0f;
-                                // fallthrough
-                            case SEQUENCE_PLAYER_STATE_0:
-                                seqPlayer->fadeRemainingFrames = seqPlayer->fadeTimerUnkEu;
-                                if (seqPlayer->fadeTimerUnkEu != 0) {
-                                    seqPlayer->fadeVelocity = (temp32 / 127.0f - seqPlayer->fadeVolume) / FLOAT_CAST(seqPlayer->fadeRemainingFrames);
-                                } else {
-                                    seqPlayer->fadeVolume = temp32 / 127.0f;
-                                }
-                        }
-                        break;
-#else
-                    case 0xdb: // seq_setvol
-                        cmd = m64_read_u8(state);
-                        switch (seqPlayer->state) {
-                            case SEQUENCE_PLAYER_STATE_2:
-                                if (seqPlayer->fadeRemainingFrames != 0) {
-                                    f32 targetVolume = FLOAT_CAST(cmd) / US_FLOAT(127.0);
-                                    seqPlayer->fadeVelocity = (targetVolume - seqPlayer->fadeVolume)
-                                                              / FLOAT_CAST(seqPlayer->fadeRemainingFrames);
+                        case 0xda:
+                            cmd = m64_read_u8(state);
+                            u16v = m64_read_s16(state);
+                            switch (cmd) {
+                                case SEQUENCE_PLAYER_STATE_0:
+                                case SEQUENCE_PLAYER_STATE_FADE_OUT:
+                                    if (seqPlayer->state != SEQUENCE_PLAYER_STATE_2) {
+                                        seqPlayer->fadeTimerUnkEu = u16v;
+                                        seqPlayer->state = cmd;
+                                    }
                                     break;
-                                }
-                                // fallthrough
-                            case SEQUENCE_PLAYER_STATE_0:
-                                seqPlayer->fadeVolume = FLOAT_CAST(cmd) / US_FLOAT(127.0);
-                                break;
-                            case SEQUENCE_PLAYER_STATE_FADE_OUT:
-                            case SEQUENCE_PLAYER_STATE_4:
-                                seqPlayer->volume = FLOAT_CAST(cmd) / US_FLOAT(127.0);
-                                break;
-                        }
-                        break;
+                                case SEQUENCE_PLAYER_STATE_2:
+                                    seqPlayer->fadeRemainingFrames = u16v;
+                                    seqPlayer->state = cmd;
+                                    seqPlayer->fadeVelocity =
+                                        (0.0f - seqPlayer->fadeVolume) / (s32)(u16v & 0xFFFFu);
+                                    break;
+                            }
+                            break;
 
-                    case 0xda: // seq_changevol
-                        temp = m64_read_u8(state);
-                        seqPlayer->fadeVolume =
-                            seqPlayer->fadeVolume + (f32)(s8) temp / US_FLOAT(127.0);
-                        break;
-#endif
-
-#if defined(VERSION_EU) || defined(VERSION_SH)
-                    case 0xd9:
-                        temp = m64_read_u8(state);
-                        seqPlayer->fadeVolumeScale = (s8) temp / 127.0f;
-                        break;
-#endif
-
-                    case 0xd7: // seq_initchannels
-                        u16v = m64_read_s16(state);
-                        sequence_player_init_channels(seqPlayer, u16v);
-                        break;
-
-                    case 0xd6: // seq_disablechannels
-                        u16v = m64_read_s16(state);
-                        sequence_player_disable_channels(seqPlayer, u16v);
-                        break;
-
-                    case 0xd5: // seq_setmutescale
-                        temp = m64_read_u8(state);
-                        seqPlayer->muteVolumeScale = (f32)(s8) temp / US_FLOAT(127.0);
-                        break;
-
-                    case 0xd4: // seq_mute
-                        seqPlayer->muted = TRUE;
-                        break;
-
-                    case 0xd3: // seq_setmutebhv
-                        seqPlayer->muteBehavior = m64_read_u8(state);
-                        break;
-
-                    case 0xd2: // seq_setshortnotevelocitytable
-                    case 0xd1: // seq_setshortnotedurationtable
-                        u16v = m64_read_s16(state);
-                        seqData = seqPlayer->seqData + u16v;
-                        if (cmd == 0xd2) {
-                            seqPlayer->shortNoteVelocityTable = seqData;
-                        } else {
-                            seqPlayer->shortNoteDurationTable = seqData;
-                        }
-                        break;
-
-                    case 0xd0: // seq_setnoteallocationpolicy
-                        seqPlayer->noteAllocPolicy = m64_read_u8(state);
-                        break;
-
-                    case 0xcc: // seq_setval
-                        value = m64_read_u8(state);
-                        break;
-
-                    case 0xc9: // seq_bitand
-#if defined(VERSION_EU) || defined(VERSION_SH)
-                        value &= m64_read_u8(state);
+                        case 0xdb:
+                            temp32 = m64_read_u8(state);
+                            switch (seqPlayer->state) {
+                                case SEQUENCE_PLAYER_STATE_2:
+                                    break;
+                                case SEQUENCE_PLAYER_STATE_FADE_OUT:
+                                    seqPlayer->state = SEQUENCE_PLAYER_STATE_0;
+                                    seqPlayer->fadeVolume = 0.0f;
+                                    // fallthrough
+                                case SEQUENCE_PLAYER_STATE_0:
+                                    seqPlayer->fadeRemainingFrames = seqPlayer->fadeTimerUnkEu;
+                                    if (seqPlayer->fadeTimerUnkEu != 0) {
+                                        seqPlayer->fadeVelocity = (temp32 / 127.0f - seqPlayer->fadeVolume) / FLOAT_CAST(seqPlayer->fadeRemainingFrames);
+                                    } else {
+                                        seqPlayer->fadeVolume = temp32 / 127.0f;
+                                    }
+                            }
+                            break;
 #else
-                        value = m64_read_u8(state) & value;
-#endif
-                        break;
+                        case 0xdb: // seq_setvol
+                            cmd = m64_read_u8(state);
+                            switch (seqPlayer->state) {
+                                case SEQUENCE_PLAYER_STATE_2:
+                                    if (seqPlayer->fadeRemainingFrames != 0) {
+                                        f32 targetVolume = FLOAT_CAST(cmd) / US_FLOAT(127.0);
+                                        seqPlayer->fadeVelocity = (targetVolume - seqPlayer->fadeVolume)
+                                                                / FLOAT_CAST(seqPlayer->fadeRemainingFrames);
+                                        break;
+                                    }
+                                    // fallthrough
+                                case SEQUENCE_PLAYER_STATE_0:
+                                    seqPlayer->fadeVolume = FLOAT_CAST(cmd) / US_FLOAT(127.0);
+                                    break;
+                                case SEQUENCE_PLAYER_STATE_FADE_OUT:
+                                case SEQUENCE_PLAYER_STATE_4:
+                                    seqPlayer->volume = FLOAT_CAST(cmd) / US_FLOAT(127.0);
+                                    break;
+                            }
+                            break;
 
-                    case 0xc8: // seq_subtract
-                        value = value - m64_read_u8(state);
-                        break;
+                        case 0xda: // seq_changevol
+                            temp = m64_read_u8(state);
+                            seqPlayer->fadeVolume =
+                                seqPlayer->fadeVolume + (f32)(s8) temp / US_FLOAT(127.0);
+                            break;
+#endif
+
+#if defined(VERSION_EU) || defined(VERSION_SH)
+                        case 0xd9:
+                            temp = m64_read_u8(state);
+                            seqPlayer->fadeVolumeScale = (s8) temp / 127.0f;
+                            break;
+#endif
+
+                        case 0xd7: // seq_initchannels
+                            u16v = m64_read_s16(state);
+                            sequence_player_init_channels(seqPlayer, u16v);
+                            break;
+
+                        case 0xd6: // seq_disablechannels
+                            u16v = m64_read_s16(state);
+                            sequence_player_disable_channels(seqPlayer, u16v);
+                            break;
+
+                        case 0xd5: // seq_setmutescale
+                            temp = m64_read_u8(state);
+                            seqPlayer->muteVolumeScale = (f32)(s8) temp / US_FLOAT(127.0);
+                            break;
+
+                        case 0xd4: // seq_mute
+                            seqPlayer->muted = TRUE;
+                            break;
+
+                        case 0xd3: // seq_setmutebhv
+                            seqPlayer->muteBehavior = m64_read_u8(state);
+                            break;
+
+                        case 0xd2: // seq_setshortnotevelocitytable
+                        case 0xd1: // seq_setshortnotedurationtable
+                            u16v = m64_read_s16(state);
+                            seqData = seqPlayer->seqData + u16v;
+                            if (cmd == 0xd2) {
+                                seqPlayer->shortNoteVelocityTable = seqData;
+                            } else {
+                                seqPlayer->shortNoteDurationTable = seqData;
+                            }
+                            break;
+
+                        case 0xd0: // seq_setnoteallocationpolicy
+                            seqPlayer->noteAllocPolicy = m64_read_u8(state);
+                            break;
+
+                        case 0xcc: // seq_setval
+                            value = m64_read_u8(state);
+                            break;
+
+                        case 0xc9: // seq_bitand
+#if defined(VERSION_EU) || defined(VERSION_SH)
+                            value &= m64_read_u8(state);
+#else
+                            value = m64_read_u8(state) & value;
+#endif
+                            break;
+
+                        case 0xc8: // seq_subtract
+                            value = value - m64_read_u8(state);
+                            break;
 
 #ifdef VERSION_SH
-                    case 0xc7:
-                        cmd = m64_read_u8(state);
-                        u16v = m64_read_s16(state);
-                        seqData = seqPlayer->seqData + u16v;
-                        *seqData = (u8)value + cmd;
-                        break;
+                        case 0xc7:
+                            cmd = m64_read_u8(state);
+                            u16v = m64_read_s16(state);
+                            seqData = seqPlayer->seqData + u16v;
+                            *seqData = (u8)value + cmd;
+                            break;
 
-                    case 0xc6:
-                        seqPlayer->unkSh = TRUE;
-                        return;
+                        case 0xc6:
+                            seqPlayer->unkSh = TRUE;
+                            return;
 #endif
 
-                    default:
-                        eu_stubbed_printf_1("Group:Undefine upper C0h command (%x)\n", cmd);
-                        break;
-                }
-            } else {
-                loBits = cmd & 0xf;
-                switch (cmd & 0xf0) {
-                    case 0x00: // seq_testchdisabled
+                        default:
+                            eu_stubbed_printf_1("Group:Undefine upper C0h command (%x)\n", cmd);
+                            break;
+                    }
+                } else {
+                    loBits = cmd & 0xf;
+                    switch (cmd & 0xf0) {
+                        case 0x00: // seq_testchdisabled
 #if defined(VERSION_EU) || defined(VERSION_SH)
-                        value = seqPlayer->channels[loBits]->finished;
-#else
-                        if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[loBits]) == TRUE) {
                             value = seqPlayer->channels[loBits]->finished;
-                        }
-#endif
-                        break;
-                    case 0x10:
-                        break;
-                    case 0x20:
-                        break;
-                    case 0x40:
-                        break;
-                    case 0x50: // seq_subvariation
-#if defined(VERSION_EU) || defined(VERSION_SH)
-                        value -= seqPlayer->seqVariationEu[0];
 #else
-                        value -= seqPlayer->seqVariation;
+                            if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[loBits]) == TRUE) {
+                                value = seqPlayer->channels[loBits]->finished;
+                            }
 #endif
-                        break;
-                    case 0x60:
-                        break;
-                    case 0x70: // seq_setvariation
+                            break;
+                        case 0x10:
+                            break;
+                        case 0x20:
+                            break;
+                        case 0x40:
+                            break;
+                        case 0x50: // seq_subvariation
 #if defined(VERSION_EU) || defined(VERSION_SH)
-                        seqPlayer->seqVariationEu[0] = value;
+                            value -= seqPlayer->seqVariationEu[0];
 #else
-                        seqPlayer->seqVariation = value;
+                            value -= seqPlayer->seqVariation;
 #endif
-                        break;
-                    case 0x80: // seq_getvariation
+                            break;
+                        case 0x60:
+                            break;
+                        case 0x70: // seq_setvariation
 #if defined(VERSION_EU) || defined(VERSION_SH)
-                        value = seqPlayer->seqVariationEu[0];
+                            seqPlayer->seqVariationEu[0] = value;
 #else
-                        value = seqPlayer->seqVariation;
+                            seqPlayer->seqVariation = value;
 #endif
-                        break;
-                    case 0x90: // seq_startchannel
-                        u16v = m64_read_s16(state);
-                        sequence_channel_enable(seqPlayer, loBits, seqPlayer->seqData + u16v);
-                        break;
-                    case 0xa0:
-                        break;
+                            break;
+                        case 0x80: // seq_getvariation
+#if defined(VERSION_EU) || defined(VERSION_SH)
+                            value = seqPlayer->seqVariationEu[0];
+#else
+                            value = seqPlayer->seqVariation;
+#endif
+                            break;
+                        case 0x90: // seq_startchannel
+                            u16v = m64_read_s16(state);
+                            sequence_channel_enable(seqPlayer, loBits, seqPlayer->seqData + u16v);
+                            break;
+                        case 0xa0:
+                            break;
 #if !defined(VERSION_EU) && !defined(VERSION_SH)
-                    case 0xd8: // (this makes no sense)
-                        break;
-                    case 0xd9:
-                        break;
+                        case 0xd8: // (this makes no sense)
+                            break;
+                        case 0xd9:
+                            break;
 #endif
 
-                    default:
-                        eu_stubbed_printf_0("Group:Undefined Command\n");
-                        break;
+                        default:
+                            eu_stubbed_printf_0("Group:Undefined Command\n");
+                            break;
+                    }
                 }
             }
         }
-    }
 
-    for (i = 0; i < CHANNELS_MAX; i++) {
+        for (i = 0; i < CHANNELS_MAX; i++) {
 #if defined(VERSION_EU) || defined(VERSION_SH)
-        if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[i]) == TRUE) {
-            sequence_channel_process_script(seqPlayer->channels[i]);
-        }
+            if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[i]) == TRUE) {
+                sequence_channel_process_script(seqPlayer->channels[i]);
+            }
 #else
-        if (seqPlayer->channels[i] != &gSequenceChannelNone) {
-            sequence_channel_process_script(seqPlayer->channels[i]);
-        }
+            if (seqPlayer->channels[i] != &gSequenceChannelNone) {
+                sequence_channel_process_script(seqPlayer->channels[i]);
+            }
 #endif
+        }
     }
 }
 
@@ -2777,7 +2786,8 @@ void init_sequence_player(u32 player) {
     seqPlayer->fadeTimerUnkEu = 0;
 #endif
     seqPlayer->tempoAcc = 0;
-    seqPlayer->tempo = 120 * TEMPO_SCALE; // 120 BPM
+    seqPlayer->tempo = 120 * TEMPO_SCALE * get_playback_tempo(); // 120 BPM
+    seqPlayer->tempoSafe = 120 * TEMPO_SCALE; // 120 BPM
 #ifdef VERSION_SH
     seqPlayer->tempoAdd = 0;
 #endif

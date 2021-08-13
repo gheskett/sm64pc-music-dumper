@@ -70,6 +70,10 @@ s32 gAudioErrorFlags = 0;
 s32 sGameLoopTicked = 0;
 
 s8 isInSoundSelect = FALSE;
+static f32 playbackFreq = 1.0f;
+static f32 playbackFreqHist = 1.0f;
+static f32 playbackTempo = 1.0f;
+static f32 playbackTempoHist = 1.0f;
 
 // Dialog sounds
 // The US difference is the sound for DIALOG_037 ("I win! You lose! Ha ha ha ha!
@@ -202,6 +206,47 @@ s16 sDynUnk38[] = {
     0,
 };
 s16 sDynNone[] = { SEQ_SOUND_PLAYER, 0 };
+
+void change_playback_tempo_tmp(f32 arg) {
+    u16 i;
+    playbackTempo = arg;
+    gSequencePlayers[SEQ_PLAYER_LEVEL].tempo = gSequencePlayers[SEQ_PLAYER_LEVEL].tempoSafe * arg;
+    for (i = 0; i < SEQUENCE_PLAYERS; ++i) {
+        if (gSequencePlayers[i].defaultBank[0] > BNK_SOUND_MARIO_PEACH) {
+            gSequencePlayers[i].tempo = gSequencePlayers[i].tempoSafe * arg;
+        }
+    }
+}
+
+void change_playback_tempo(f32 arg) {
+    playbackTempoHist = arg;
+    change_playback_tempo_tmp(arg);
+}
+
+f32 get_playback_tempo(void) {
+    return playbackTempo;
+}
+
+f32 get_playback_tempo_history(void) {
+    return playbackTempoHist;
+}
+
+void change_playback_frequency_tmp(f32 arg) {
+    playbackFreq = arg;
+}
+
+void change_playback_frequency(f32 arg) {
+    playbackFreqHist = arg;
+    change_playback_frequency_tmp(arg);
+}
+
+f32 get_playback_frequency(void) {
+    return playbackFreq;
+}
+
+f32 get_playback_frequency_history(void) {
+    return playbackFreqHist;
+}
 
 u8 sCurrentMusicDynamic = 0xff;
 u8 sBackgroundMusicForDynamics = SEQUENCE_NONE;
@@ -2385,6 +2430,24 @@ void play_music(u8 player, u16 seqArgs, u16 fadeTimer) {
     u8 priority = seqArgs >> 8;
     u8 i;
     u8 foundIndex = 0;
+
+    if ((get_current_background_music() & 0xFF) != seqId) {
+        if (!isInSoundSelect) {
+            switch (seqId) {
+                case SEQ_EVENT_METAL_CAP:
+                case SEQ_EVENT_POWERUP:
+                    break;
+                case SEQ_EVENT_CUTSCENE_COLLECT_STAR:
+                case SEQ_EVENT_CUTSCENE_LAKITU:
+                    change_playback_frequency(1.0f);
+                    change_playback_tempo(1.0f);
+                    break;
+                default:
+                    change_playback_frequency(1.0f);
+                    change_playback_tempo(1.0f);
+            }
+        }
+    }
 
     // Except for the background music player, we don't support queued
     // sequences. Just play them immediately, stopping any old sequence.

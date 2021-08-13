@@ -14,6 +14,8 @@ extern const GeoLayout geo_menu_file_button[];
 extern const GeoLayout geo_menu_score_button[];
 extern const GeoLayout geo_menu_sound_button[];
 extern const GeoLayout geo_menu_generic_button[];
+extern const GeoLayout geo_menu_up_button[];
+extern const GeoLayout geo_menu_down_button[];
 extern const GeoLayout geo_menu_file_select_strings_and_menu_cursor[];
 extern const GeoLayout geo_menu_act_selector_strings[];
 
@@ -28,6 +30,8 @@ extern const Gfx dl_menu_file_button[];
 extern const Gfx dl_menu_score_button[];
 extern const Gfx dl_menu_sound_button[];
 extern const Gfx dl_menu_generic_button[];
+extern const Gfx dl_menu_up_button[];
+extern const Gfx dl_menu_down_button[];
 extern const Gfx dl_menu_idle_hand[];
 extern const Gfx dl_menu_grabbing_hand[];
 extern const u8 *const menu_hud_lut[];
