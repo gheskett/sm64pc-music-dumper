@@ -212,7 +212,8 @@ f32 get_vibrato_freq_scale(struct VibratoState *vib) {
     s32 pitchChange;
     f32 extent;
     f32 result;
-    u16 vibratoRateTargetSpeedChange = (u16) ((f32) vib->seqChannel->vibratoRateTarget * get_playback_frequency() + 0.5f);
+    // u16 vibratoRateTargetSpeedChange = (u16) ((f32) vib->seqChannel->vibratoRateTarget * get_playback_frequency() + 0.5f); // Or use get_playback_tempo() here instead or get_playback_frequency() depending on your goal
+    u16 vibratoRateTargetSpeedChange = vib->seqChannel->vibratoRateTarget;
 
     if (vib->delay != 0) {
         vib->delay--;
@@ -315,7 +316,8 @@ void note_vibrato_init(struct Note *note) {
     }
 
     if ((vib->rateChangeTimer = vib->seqChannel->vibratoRateChangeDelay) == 0) {
-        vib->rate = FLOAT_CAST((u16) ((f32) vib->seqChannel->vibratoRateTarget * get_playback_frequency() + 0.5f));
+        // vib->rate = FLOAT_CAST((u16) ((f32) vib->seqChannel->vibratoRateTarget * get_playback_frequency() + 0.5f)); // Or use get_playback_tempo() here instead or get_playback_frequency() depending on your goal
+        vib->rate = vib->seqChannel->vibratoRateTarget);
     } else {
         vib->rate = FLOAT_CAST(vib->seqChannel->vibratoRateStart);
     }
@@ -334,7 +336,8 @@ void note_vibrato_init(struct Note *note) {
     }
 
     if ((vib->rateChangeTimer = seqChannel->vibratoRateChangeDelay) == 0) {
-        vib->rate = (u16) ((f32) vib->seqChannel->vibratoRateTarget * get_playback_frequency() + 0.5f);
+        // vib->rate = (u16) ((f32) vib->seqChannel->vibratoRateTarget * get_playback_frequency() + 0.5f); // Or use get_playback_tempo() here instead or get_playback_frequency() depending on your goal
+        vib->rate = vib->seqChannel->vibratoRateTarget;
     } else {
         vib->rate = seqChannel->vibratoRateStart;
     }
@@ -472,7 +475,8 @@ s32 adsr_update(struct AdsrState *adsr) {
         case ADSR_STATE_DECAY:
         case ADSR_STATE_RELEASE: {
             tmp = adsr->current;
-            adsr->current -= (s16) ((f32) adsr->fadeOutVel * get_playback_frequency() + 0.5f);
+            // adsr->current -= (s16) ((f32) adsr->fadeOutVel * get_playback_frequency() + 0.5f); // Or use get_playback_tempo() here instead or get_playback_frequency() depending on your goal
+            adsr->current -= adsr->fadeOutVel;
             if (adsr->current == tmp && adsr->fadeOutVel > 0)
                 adsr->current--;
 #if defined(VERSION_EU) || defined(VERSION_SH)
