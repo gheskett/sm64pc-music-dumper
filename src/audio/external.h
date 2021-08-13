@@ -32,6 +32,12 @@ extern s8 isInSoundSelect;
 extern u8 sPlayer0CurSeqId;
 
 struct SPTask *create_next_audio_frame_task(void);
+f32 get_playback_tempo(void);
+f32 get_playback_tempo_history(void);
+void change_playback_tempo(f32 arg);
+f32 get_playback_frequency(void);
+f32 get_playback_frequency_history(void);
+void change_playback_frequency(f32 arg);
 void play_sound(s32 soundBits, f32 *pos);
 void audio_signal_game_loop_tick(void);
 void sequence_player_fade_out(u8 player, u16 fadeTimer);

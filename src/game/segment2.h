@@ -41,7 +41,7 @@ extern Gfx dl_paintings_env_mapped_begin[];
 extern Gfx dl_paintings_env_mapped_end[];
 extern u8 seg2_painting_triangle_mesh[];
 extern u8 seg2_painting_mesh_neighbor_tris[];
-extern u8* main_hud_lut[58];
+extern u8* main_hud_lut[64];
 extern Gfx dl_hud_img_load_tex_block[];
 extern Gfx dl_hud_img_begin[];
 extern Gfx dl_hud_img_end[];

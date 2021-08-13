@@ -1703,6 +1703,10 @@ ALIGNED8 static const u8 texture_font_char_us_z[] = {
 #include "textures/segment2/font_graphics.06840.ia4.inc.c"
 };
 
+ALIGNED8 static const u8 texture_font_char_us_plus[] = {
+#include "textures/segment2/custom.font_graphics.plus.ia4.inc.c"
+};
+
 ALIGNED8 static const u8 texture_font_char_us_left_right_arrow[] = {
 #include "textures/segment2/font_graphics.06880.ia4.inc.c"
 };
@@ -1844,6 +1848,22 @@ ALIGNED8 static const u8 texture_hud_char_arrow_down[] = {
 #include "textures/segment2/segment2.081D0.rgba16.inc.c"
 };
 
+ALIGNED8 static const u8 texture_hud_char_arrow_up_16x[] = {
+#include "textures/segment2/custom.segment2.up_arrow_16x16.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 texture_hud_char_arrow_down_16x[] = {
+#include "textures/segment2/custom.segment2.down_arrow_16x16.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 texture_hud_char_arrow_left_16x[] = {
+#include "textures/segment2/custom.segment2.left_arrow_16x16.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 texture_hud_char_arrow_right_16x[] = {
+#include "textures/segment2/custom.segment2.right_arrow_16x16.rgba16.inc.c"
+};
+
 // Main HUD print table 0x02008250-0x02008337
 const u8 *const main_hud_lut[] = {
 #ifdef VERSION_EU
@@ -1861,7 +1881,8 @@ const u8 *const main_hud_lut[] = {
                   0x0,               0x0,               0x0,               0x0,
                   0x0,               0x0, texture_hud_char_multiply, texture_hud_char_coin,
     texture_hud_char_mario_head, texture_hud_char_star,               0x0,               0x0,
-    texture_hud_char_apostrophe, texture_hud_char_double_quote, texture_hud_char_umlaut,
+    texture_hud_char_apostrophe, texture_hud_char_double_quote, texture_hud_char_umlaut, 0x0,
+    texture_hud_char_arrow_up_16x, texture_hud_char_arrow_down_16x, texture_hud_char_arrow_left_16x, texture_hud_char_arrow_right_16x,
 #elif defined(VERSION_US)
     texture_hud_char_0, texture_hud_char_1, texture_hud_char_2, texture_hud_char_3,
     texture_hud_char_4, texture_hud_char_5, texture_hud_char_6, texture_hud_char_7,
@@ -1876,8 +1897,9 @@ const u8 *const main_hud_lut[] = {
     texture_hud_char_percent,        0x0,               0x0,               0x0,
                   0x0,               0x0,               0x0,               0x0,
                   0x0, texture_hud_char_custom_music_note, texture_hud_char_multiply, texture_hud_char_coin,
-    texture_hud_char_mario_head, texture_hud_char_star,               0x0,               0x0,
-    texture_hud_char_apostrophe, texture_hud_char_double_quote,
+    texture_hud_char_mario_head, texture_hud_char_star, 0x0,              0x0,
+    texture_hud_char_apostrophe, texture_hud_char_double_quote, 0x0,      0x0,
+    texture_hud_char_arrow_up_16x, texture_hud_char_arrow_down_16x, texture_hud_char_arrow_left_16x, texture_hud_char_arrow_right_16x,
 #else
     texture_hud_char_0, texture_hud_char_1, texture_hud_char_2, texture_hud_char_3,
     texture_hud_char_4, texture_hud_char_5, texture_hud_char_6, texture_hud_char_7,
@@ -1893,7 +1915,8 @@ const u8 *const main_hud_lut[] = {
                       0x0,                   0x0,                      0x0,                  0x0,
                       0x0,                   0x0, texture_hud_char_multiply, texture_hud_char_coin,
     texture_hud_char_mario_head, texture_hud_char_star, texture_hud_char_decimal_point, texture_hud_char_beta_key,
-    texture_hud_char_apostrophe, texture_hud_char_double_quote,
+    texture_hud_char_apostrophe, texture_hud_char_double_quote, 0x0,      0x0,
+    texture_hud_char_arrow_up_16x, texture_hud_char_arrow_down_16x, texture_hud_char_arrow_left_16x, texture_hud_char_arrow_right_16x,
 #endif
 };
 
@@ -2024,7 +2047,7 @@ const u8 *const main_font_lut[] = {
                   0x0,               0x0,               0x0,               0x0,
                   0x0,               0x0,               0x0,               0x0,
                   0x0, texture_font_char_us_open_parentheses, texture_font_char_us_close_open_parentheses, texture_font_char_us_close_parentheses,
-    texture_font_char_us_left_right_arrow, texture_font_char_us_ampersand, texture_font_char_us_ellipsis,               0x0,
+    texture_font_char_us_plus, texture_font_char_us_ampersand, texture_font_char_us_ellipsis, texture_font_char_us_left_right_arrow,
                   0x0,               0x0,               0x0,               0x0,
                   0x0,               0x0,               0x0,               0x0,
                   0x0,               0x0, texture_font_char_us_exclamation, texture_font_char_us_percent,

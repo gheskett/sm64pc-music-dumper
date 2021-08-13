@@ -8,6 +8,7 @@
 #include "synthesis.h"
 #include "effects.h"
 #include "external.h"
+#include "seq_ids.h"
 
 #ifdef VERSION_EU
 void note_set_vel_pan_reverb(struct Note *note, f32 velocity, u8 pan, u8 reverb) {
@@ -420,7 +421,12 @@ void process_notes(void) {
             frequency = (frequency < cap ? frequency : cap);
             scale *= 4.3498e-5f; // ~1 / 23000
             velocity = velocity * scale * scale;
-            note_set_frequency(note, frequency);
+            
+            if (note->bankId > BNK_SOUND_MARIO_PEACH)
+                note_set_frequency(note, frequency * get_playback_frequency());
+            else
+                note_set_frequency(note, frequency);
+
             note_set_vel_pan_reverb(note, velocity, pan, reverb);
             continue;
         }

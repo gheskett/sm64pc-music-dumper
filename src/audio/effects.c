@@ -3,6 +3,7 @@
 #include "effects.h"
 #include "load.h"
 #include "data.h"
+#include "external.h"
 #include "seqplayer.h"
 
 #ifdef VERSION_JP
@@ -207,6 +208,7 @@ f32 get_vibrato_freq_scale(struct VibratoState *vib) {
     s32 pitchChange;
     f32 extent;
     f32 result;
+    u16 vibratoRateTargetSpeedChange = (u16) ((f32) vib->seqChannel->vibratoRateTarget * get_playback_frequency() + 0.5f);
 
     if (vib->delay != 0) {
         vib->delay--;
@@ -230,15 +232,15 @@ f32 get_vibrato_freq_scale(struct VibratoState *vib) {
 
     if (vib->rateChangeTimer) {
         if (vib->rateChangeTimer == 1) {
-            vib->rate = (s32) vib->seqChannel->vibratoRateTarget;
+            vib->rate = (s32) vibratoRateTargetSpeedChange;
         } else {
-            vib->rate += ((s32) vib->seqChannel->vibratoRateTarget - vib->rate) / (s32) vib->rateChangeTimer;
+            vib->rate += ((s32) vibratoRateTargetSpeedChange - vib->rate) / (s32) vib->rateChangeTimer;
         }
 
         vib->rateChangeTimer--;
-    } else if (vib->seqChannel->vibratoRateTarget != (s32) vib->rate) {
+    } else if (vibratoRateTargetSpeedChange != (s32) vib->rate) {
         if ((vib->rateChangeTimer = vib->seqChannel->vibratoRateChangeDelay) == 0) {
-            vib->rate = (s32) vib->seqChannel->vibratoRateTarget;
+            vib->rate = (s32) vibratoRateTargetSpeedChange;
         }
     }
 
@@ -309,7 +311,7 @@ void note_vibrato_init(struct Note *note) {
     }
 
     if ((vib->rateChangeTimer = vib->seqChannel->vibratoRateChangeDelay) == 0) {
-        vib->rate = FLOAT_CAST(vib->seqChannel->vibratoRateTarget);
+        vib->rate = FLOAT_CAST((u16) ((f32) vib->seqChannel->vibratoRateTarget * get_playback_frequency() + 0.5f));
     } else {
         vib->rate = FLOAT_CAST(vib->seqChannel->vibratoRateStart);
     }
@@ -328,7 +330,7 @@ void note_vibrato_init(struct Note *note) {
     }
 
     if ((vib->rateChangeTimer = seqChannel->vibratoRateChangeDelay) == 0) {
-        vib->rate = seqChannel->vibratoRateTarget;
+        vib->rate = (u16) ((f32) vib->seqChannel->vibratoRateTarget * get_playback_frequency() + 0.5f);
     } else {
         vib->rate = seqChannel->vibratoRateStart;
     }
@@ -360,6 +362,7 @@ f32 adsr_update(struct AdsrState *adsr) {
 s32 adsr_update(struct AdsrState *adsr) {
 #endif
     u8 action = adsr->action;
+    s16 tmp;
 #ifdef VERSION_EU
     u8 state = adsr->state;
     switch (state) {
@@ -443,7 +446,10 @@ s32 adsr_update(struct AdsrState *adsr) {
 
         case ADSR_STATE_DECAY:
         case ADSR_STATE_RELEASE: {
-            adsr->current -= adsr->fadeOutVel;
+            tmp = adsr->current;
+            adsr->current -= (s16) ((f32) adsr->fadeOutVel * get_playback_frequency() + 0.5f);
+            if (adsr->current == tmp && adsr->fadeOutVel > 0)
+                adsr->current--;
 #ifdef VERSION_EU
             if (adsr->sustain != 0.0f && state == ADSR_STATE_DECAY) {
 #else

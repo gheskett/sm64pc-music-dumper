@@ -575,6 +575,8 @@
 #define MODEL_MAIN_MENU_MARIO_NEW_BUTTON_FADE     MODEL_LEVEL_GEOMETRY_0A   // main_menu_geo_000260
 #define MODEL_MAIN_MENU_PURPLE_SOUND_BUTTON       MODEL_LEVEL_GEOMETRY_0B   // main_menu_geo_000330
 #define MODEL_MAIN_MENU_GENERIC_BUTTON            MODEL_LEVEL_GEOMETRY_0C   // main_menu_geo_000358
+#define MODEL_MAIN_MENU_UP_BUTTON                 MODEL_LEVEL_GEOMETRY_0D
+#define MODEL_MAIN_MENU_DOWN_BUTTON               MODEL_LEVEL_GEOMETRY_0E
 
 // level model aliases to level geometry IDs. Possibly a relic from an older level
 // format that used to rely on level geometry objects. (seen in WF, LLL, etc)

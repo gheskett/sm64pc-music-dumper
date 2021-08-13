@@ -18,6 +18,16 @@ static const Lights1 lights_menu_save_button = gdSPDefLights1(
 );
 
 // 0x07000018 - 0x07000818
+ALIGNED8 static const u8 texture_menu_up[] = {
+#include "levels/menu/custom_main_menu_up_arrow_16x16.rgba16.inc.c"
+};
+
+// 0x07000018 - 0x07000818
+ALIGNED8 static const u8 texture_menu_down[] = {
+#include "levels/menu/custom_main_menu_down_arrow_16x16.rgba16.inc.c"
+};
+
+// 0x07000018 - 0x07000818
 ALIGNED8 static const u8 texture_menu_stone[] = {
 #include "levels/menu/main_menu_seg7.00018.rgba16.inc.c"
 };
@@ -322,6 +332,13 @@ static const Vtx vertex_menu_main_button_group4[] = {
     {{{   122,    -81,     30}, 0, {    96,    138}, {0x4a, 0x00, 0x66, 0xff}}},
 };
 
+static const Vtx vertex_menu_updown_button_group[] = {
+    {{{     0,      0,      0}, 0, {     0,    496}, {0x00, 0x00, 0x7f, 0xff}}},
+    {{{    16,      0,      0}, 0, {   496,    496}, {0x00, 0x00, 0x7f, 0xff}}},
+    {{{    16,     16,      0}, 0, {   496,      0}, {0x00, 0x00, 0x7f, 0xff}}},
+    {{{     0,     16,      0}, 0, {     0,      0}, {0x00, 0x00, 0x7f, 0xff}}},
+};
+
 // 0x07006038 - 0x07006150
 static const Gfx dl_vertex_menu_main_button[] = {
     gsSPLight(&lights_menu_main_button.l, 1),
@@ -428,6 +445,42 @@ const Gfx dl_menu_generic_button[] = {
     gsDPLoadSync(),
     gsDPLoadBlock(G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES)),
     gsSPDisplayList(dl_menu_main_button),
+    gsSPEndDisplayList(),
+};
+
+const Gfx dl_menu_up_button[] = {
+    gsDPPipeSync(),
+    gsDPSetCombineMode(G_CC_DECALFADE, G_CC_DECALFADE),
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
+
+    gsDPLoadTextureBlock(texture_menu_up, G_IM_FMT_RGBA, G_IM_SIZ_16b, 16, 16, 0, G_TX_CLAMP, G_TX_CLAMP, 4, 4, G_TX_NOLOD, G_TX_NOLOD),
+    gsSPVertex(vertex_menu_updown_button_group, 4, 0),
+    gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
+    gsDPPipeSync(),
+    gsSPSetGeometryMode(G_LIGHTING),
+    gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+    gsDPSetEnvColor(255, 255, 255, 255),
+    gsDPSetRenderMode(G_RM_AA_ZB_OPA_SURF, G_RM_AA_ZB_OPA_SURF2),
+    gsSPEndDisplayList(),
+};
+
+const Gfx dl_menu_down_button[] = {
+    gsDPPipeSync(),
+    gsDPSetCombineMode(G_CC_DECALFADE, G_CC_DECALFADE),
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON),
+
+    gsDPLoadTextureBlock(texture_menu_down, G_IM_FMT_RGBA, G_IM_SIZ_16b, 16, 16, 0, G_TX_CLAMP, G_TX_CLAMP, 4, 4, G_TX_NOLOD, G_TX_NOLOD),
+    gsSPVertex(vertex_menu_updown_button_group, 4, 0),
+    gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+
+    gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
+    gsDPPipeSync(),
+    gsSPSetGeometryMode(G_LIGHTING),
+    gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+    gsDPSetEnvColor(255, 255, 255, 255),
+    gsDPSetRenderMode(G_RM_AA_ZB_OPA_SURF, G_RM_AA_ZB_OPA_SURF2),
     gsSPEndDisplayList(),
 };
 
