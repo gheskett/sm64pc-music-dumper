@@ -12,6 +12,7 @@ For more details on compilation and dependency prerequisites, please read the in
 
 ### Audio Dumping
 
+- Visit the Sound menu in the file select to access a custom music player implemented for playback convenience.
 - Press the L button to start/stop an audio dump (Mapped to Q on keyboard).
 - The audio will be placed in the same folder as the call to run the executable.
 - An audio dump will automatically be closed after file size exceeds 512MB.
@@ -25,7 +26,7 @@ For more details on compilation and dependency prerequisites, please read the in
 - Use the speedup key (Tab) to speed up gameplay to about as fast as your computer can handle.
 - To cap the speedup, change the max_speedup_framerate field in the sm64config.txt to a positive integer of your choice.
 
-## About
+## ABOUT
 
 - This repo contains a full decompilation of Super Mario 64 (J), (U), and (E) with minor exceptions in the audio subsystem.
 - Naming and documentation of the source code and data structures are in progress.
