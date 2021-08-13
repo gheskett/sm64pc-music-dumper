@@ -8,7 +8,7 @@
 - Navigate to repo: `cd [Drive Letter]:/[Path]`
 - Compile: `make -j`
 
-* For more details on compilation and dependency prerequisites, please read the instructions lower in the README.
+For more details on compilation and dependency prerequisites, please read the instructions lower in the README.
 
 ### Audio Dumping
 
@@ -37,32 +37,35 @@ A prior copy of the game is required to extract the assets.
 
 ## Default Controls
 
-- A: M
-- B: N
-- Z: Space
+```
+A: M
+B: N
+Z: Space
 
-- Start: Enter
-- L: Q
-- R: E
+Start: Enter
+L: Q
+R: E
 
-- Analog Up: W
-- Analog Left: A
-- Analog Down: S
-- Analog Right: D
+Analog Up: W
+Analog Left: A
+Analog Down: S
+Analog Right: D
 
-- C-Up: ↑
-- C-Left: ←
-- C-Down: ↓
-- C-Right: →
+C-Up: ↑
+C-Left: ←
+C-Down: ↓
+C-Right: →
 
-- D-Pad Up: NumPad 8
-- D-Pad Left: NumPad 4
-- D-Pad Down: NumPad 2
-- D-Pad Right: NumPad 6
+D-Pad Up: NumPad 8
+D-Pad Left: NumPad 4
+D-Pad Down: NumPad 2
+D-Pad Right: NumPad 6
 
-- Speedup Key: Tab
+Speedup Key: Tab
+```
 
-* These controls can be changed in the `sm64config.txt` using scancode values. It is on the todo list to write a better native control mapping system eventually.
+These controls can be changed in the `sm64config.txt` using scancode values.
+It is on the todo list to write a better native control mapping system eventually.
 
 ## Building native executables
 
