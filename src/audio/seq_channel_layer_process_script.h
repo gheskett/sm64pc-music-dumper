@@ -492,6 +492,10 @@ l13cc:
                         layer->sound = NULL;
                         layer->freqScale = gNoteFrequencies[SEMITONE];
                     }
+
+                    if (instrument == NULL) {
+                        layer->freqScale *= (32000.0f / 48000.0f);
+                    }
                 }
             }
             layer->delayUnused = layer->delay;
