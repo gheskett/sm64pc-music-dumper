@@ -445,6 +445,10 @@ s32 adsr_update(struct AdsrState *adsr) {
                     adsr->target = adsr->target * adsr->target;
                     adsr->velocity = (adsr->target - adsr->current) / adsr->delay;
 #else
+                    adsr->delay = (s16) ((f32) adsr->delay * gAudioUpdatesPerFrame / 4.0f + 0.5f);
+                    if (adsr->delay <= 0)
+                        adsr->delay = 1;
+
                     adsr->target = BSWAP16(adsr->envelope[adsr->envIndex].arg);
                     adsr->velocity = ((adsr->target - adsr->current) << 0x10) / adsr->delay;
 #endif
