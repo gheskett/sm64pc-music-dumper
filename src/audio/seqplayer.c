@@ -71,8 +71,8 @@ void sequence_channel_init(struct SequenceChannel *seqChannel) {
 #if defined(VERSION_JP) || defined(VERSION_US)
     seqChannel->updatesPerFrameUnused = gAudioUpdatesPerFrame;
 #endif
-    seqChannel->vibratoRateTarget = 0x800;
-    seqChannel->vibratoRateStart = 0x800;
+    seqChannel->vibratoRateTarget = 0x800 * 4 / gAudioUpdatesPerFrame;
+    seqChannel->vibratoRateStart = 0x800 * 4 / gAudioUpdatesPerFrame;
     seqChannel->vibratoExtentTarget = 0;
     seqChannel->vibratoExtentStart = 0;
     seqChannel->vibratoRateChangeDelay = 0;
@@ -1798,24 +1798,24 @@ void sequence_channel_process_script(struct SequenceChannel *seqChannel) {
 
                     case 0xd7: // chan_setvibratorate
                         seqChannel->vibratoRateStart = seqChannel->vibratoRateTarget =
-                            m64_read_u8(state) * 32;
+                            (u16) m64_read_u8(state) * 32 * 4 / gAudioUpdatesPerFrame;
                         seqChannel->vibratoRateChangeDelay = 0;
                         break;
 
                     case 0xe2: // chan_setvibratoextentlinear
                         seqChannel->vibratoExtentStart = m64_read_u8(state) * 8;
                         seqChannel->vibratoExtentTarget = m64_read_u8(state) * 8;
-                        seqChannel->vibratoExtentChangeDelay = m64_read_u8(state) * 16;
+                        seqChannel->vibratoExtentChangeDelay = (u16) m64_read_u8(state) * 16 * gAudioUpdatesPerFrame / 4;
                         break;
 
                     case 0xe1: // chan_setvibratoratelinear
-                        seqChannel->vibratoRateStart = m64_read_u8(state) * 32;
-                        seqChannel->vibratoRateTarget = m64_read_u8(state) * 32;
-                        seqChannel->vibratoRateChangeDelay = m64_read_u8(state) * 16;
+                        seqChannel->vibratoRateStart = (u16) m64_read_u8(state) * 32 * 4 / gAudioUpdatesPerFrame;
+                        seqChannel->vibratoRateTarget = (u16) m64_read_u8(state) * 32 * 4 / gAudioUpdatesPerFrame;
+                        seqChannel->vibratoRateChangeDelay = (u16) m64_read_u8(state) * 16 * gAudioUpdatesPerFrame / 4;
                         break;
 
                     case 0xe3: // chan_setvibratodelay
-                        seqChannel->vibratoDelay = m64_read_u8(state) * 16;
+                        seqChannel->vibratoDelay = (u16) m64_read_u8(state) * 16 * gAudioUpdatesPerFrame / 4;
                         break;
 
 #if defined(VERSION_JP) || defined(VERSION_US)
