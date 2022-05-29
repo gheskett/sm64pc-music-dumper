@@ -714,8 +714,8 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
             } else {
                 // If frequency is > 2.0, the processing must be split into two parts
                 nParts = 2;
-                if (note->frequency >= US_FLOAT(3.99993)) {
-                    note->frequency = US_FLOAT(3.99993);
+                if (note->frequency >= US_FLOAT(3.99993) * (US_FLOAT(32000.0) / US_FLOAT(48000.0))) {
+                    note->frequency = US_FLOAT(3.99993) * (US_FLOAT(32000.0) / US_FLOAT(48000.0));
                 }
                 resamplingRate = note->frequency * US_FLOAT(.5);
             }
