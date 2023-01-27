@@ -2668,8 +2668,8 @@ void print_erase_menu_strings(void) {
 #endif
 
 void update_pitch_tempo_strings() {
-    u32 pitch = (u32) (get_playback_frequency() * 100);
-    u32 tempo = (u32) (get_playback_tempo() * 100);
+    u32 pitch = (u32) (get_playback_frequency() * 100.0f + 0.5f);
+    u32 tempo = (u32) (get_playback_tempo() * 100.0f + 0.5f);
 
     if (pitch > 999)
         pitch = 999;
