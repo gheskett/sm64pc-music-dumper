@@ -51,9 +51,9 @@ struct PoolSplit sPersistentCommonPoolSplit;
 struct PoolSplit sTemporaryCommonPoolSplit;
 
 #ifdef VERSION_SH
-u8 gUnkLoadStatus[0x40];
+u8 gUnkLoadStatus[0x100];
 #endif
-u8 gBankLoadStatus[0x40];
+u8 gBankLoadStatus[0x100];
 u8 gSeqLoadStatus[0x100];
 
 #if defined(VERSION_EU) || defined(VERSION_SH)
@@ -170,29 +170,29 @@ void reset_bank_and_seq_load_status(void) {
     s32 i;
 
 #ifdef VERSION_SH
-    for (i = 0; i < 64; i++) {
+    for (i = 0; i < 0x100; i++) {
         if (gBankLoadStatus[i] != SOUND_LOAD_STATUS_5) {
             gBankLoadStatus[i] = SOUND_LOAD_STATUS_NOT_LOADED;
         }
     }
 
-    for (i = 0; i < 64; i++) {
+    for (i = 0; i < 0x100; i++) {
         if (gUnkLoadStatus[i] != SOUND_LOAD_STATUS_5) {
             gUnkLoadStatus[i] = SOUND_LOAD_STATUS_NOT_LOADED;
         }
     }
 
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < 0x100; i++) {
         if (gSeqLoadStatus[i] != SOUND_LOAD_STATUS_5) {
             gSeqLoadStatus[i] = SOUND_LOAD_STATUS_NOT_LOADED;
         }
     }
 #else
-    for (i = 0; i < 64; i++) {
+    for (i = 0; i < 0x100; i++) {
         gBankLoadStatus[i] = SOUND_LOAD_STATUS_NOT_LOADED;
     }
 
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < 0x100; i++) {
         gSeqLoadStatus[i] = SOUND_LOAD_STATUS_NOT_LOADED;
     }
 #endif
