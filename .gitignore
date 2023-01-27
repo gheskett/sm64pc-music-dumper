@@ -75,3 +75,5 @@ dump*.wav
 !/sound/**/*custom*/**/*.aiff
 !/assets/**/*custom*.bin
 !/assets/**/*custom*/**/*.bin
+
+!/sound/sequences/us/23_temporary_sequence.m64
