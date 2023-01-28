@@ -31,6 +31,9 @@ struct SoundAllocPool gAudioSessionPool;
 struct SoundAllocPool gAudioInitPool;
 struct SoundAllocPool gNotesAndBuffersPool;
 u8 sAudioHeapPad[0x20]; // probably two unused pools
+#ifdef BETTER_REVERB
+struct SoundAllocPool gBetterReverbPool;
+#endif
 struct SoundAllocPool gSeqAndBankPool;
 struct SoundAllocPool gPersistentCommonPool;
 struct SoundAllocPool gTemporaryCommonPool;
@@ -350,6 +353,9 @@ void session_pools_init(struct PoolSplit *a) {
     gAudioSessionPool.cur = gAudioSessionPool.start;
     sound_alloc_pool_init(&gNotesAndBuffersPool, SOUND_ALLOC_FUNC(&gAudioSessionPool, a->wantSeq), a->wantSeq);
     sound_alloc_pool_init(&gSeqAndBankPool, SOUND_ALLOC_FUNC(&gAudioSessionPool, a->wantCustom), a->wantCustom);
+#ifdef BETTER_REVERB
+    sound_alloc_pool_init(&gBetterReverbPool, SOUND_ALLOC_FUNC(&gAudioSessionPool, BETTER_REVERB_SIZE), BETTER_REVERB_SIZE);
+#endif
 }
 
 void seq_and_bank_pool_init(struct PoolSplit2 *a) {
@@ -1277,7 +1283,7 @@ void audio_reset_session(void) {
     temporaryMem = DOUBLE_SIZE_ON_64_BIT(preset->temporaryBankMem + preset->temporarySeqMem);
 #endif
     totalMem = persistentMem + temporaryMem;
-    wantMisc = gAudioSessionPool.size - totalMem - 0x100;
+    wantMisc = gAudioSessionPool.size - totalMem - BETTER_REVERB_SIZE - 0x100;
     sSessionPoolSplit.wantSeq = wantMisc;
     sSessionPoolSplit.wantCustom = totalMem;
     session_pools_init(&sSessionPoolSplit);
@@ -1392,6 +1398,50 @@ void audio_reset_session(void) {
     }
 
 #else
+
+#ifdef BETTER_REVERB
+    // This will likely crash if given an invalid preset value. Adding a safety check here isn't worth the usability interference.
+    struct BetterReverbSettings *betterReverbPreset = &gBetterReverbSettings[gBetterReverbPreset];
+
+    betterReverbDownsampleRate = betterReverbPreset->downsampleRate;
+    monoReverb = betterReverbPreset->isMono;
+    reverbFilterCount = betterReverbPreset->filterCount;
+    betterReverbWindowsSize = betterReverbPreset->windowSize;
+    betterReverbRevIndex = betterReverbPreset->reverbIndex;
+    betterReverbGainIndex = betterReverbPreset->gainIndex;
+    gReverbMultsL = betterReverbPreset->reverbMultsL;
+    gReverbMultsR = betterReverbPreset->reverbMultsR;
+
+    if (betterReverbDownsampleRate <= 0) {
+        toggleBetterReverb = FALSE;
+        if (betterReverbWindowsSize >= 0)
+            reverbWindowSize = betterReverbWindowsSize;
+    } else {
+        toggleBetterReverb = TRUE;
+        gReverbDownsampleRate = (1 << (betterReverbDownsampleRate - 1));
+
+        if (betterReverbWindowsSize >= 0) {
+            reverbWindowSize = betterReverbWindowsSize;
+            reverbWindowSize /= gReverbDownsampleRate;
+            if (reverbWindowSize < DEFAULT_LEN_2CH && betterReverbWindowsSize != 0) // Minimum window size to not overflow
+                reverbWindowSize = DEFAULT_LEN_2CH;
+        }
+    }
+
+    reverbFilterCount -= reverbFilterCount % 3;
+    
+    if (reverbFilterCount > NUM_ALLPASS) {
+        reverbFilterCount = NUM_ALLPASS;
+    } else if (reverbFilterCount < 3) {
+        reverbFilterCount = 3;
+    }
+#endif
+    reverbWindowSize = (f32) reverbWindowSize * SAMPLE_RATE_MULT + 0.5f;
+
+    if (reverbWindowSize > REVERB_WINDOW_SIZE_MAX) {
+        reverbWindowSize = REVERB_WINDOW_SIZE_MAX;
+    }
+
     if (reverbWindowSize == 0) {
         gSynthesisReverb.useReverb = 0;
     } else {
@@ -1421,6 +1471,20 @@ void audio_reset_session(void) {
             }
         }
     }
+#endif
+
+#ifdef BETTER_REVERB
+    if (!gSynthesisReverb.useReverb)
+        toggleBetterReverb = FALSE;
+
+    if (betterReverbPreset->gain > 0)
+        gSynthesisReverb.reverbGain = (u16) betterReverbPreset->gain;
+
+    initialize_better_reverb_buffers();
+
+    // This does not have to be reset after being initialized for the first time, which would help speed up load times.
+    // However, resetting this allows for proper clearing of the reverb buffers, as well as dynamic customization of the delays array.
+    set_better_reverb_buffers(betterReverbPreset->delaysL, betterReverbPreset->delaysR);
 #endif
 
     init_sample_dma_buffers(gMaxSimultaneousNotes);

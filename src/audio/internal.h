@@ -5,6 +5,10 @@
 
 #include "types.h"
 
+#define SAMPLE_RATE_MULT (48000.0f / 32000.0f)
+
+#define ALIGN16(val) (((val) + 0xF) & ~0xF)
+
 #if defined(VERSION_EU) || defined(VERSION_SH)
 #define SEQUENCE_PLAYERS 4
 #define SEQUENCE_CHANNELS 48
@@ -741,6 +745,22 @@ struct NoteSynthesisBuffers
 #endif
 #endif
 };
+
+#ifdef BETTER_REVERB
+struct BetterReverbSettings {
+    s8 downsampleRate;
+    u8 isMono;
+    u8 filterCount;
+    s16 windowSize;
+    s16 gain;
+    u8 gainIndex;
+    u8 reverbIndex;
+    u32 *delaysL;
+    u32 *delaysR;
+    s32 *reverbMultsL;
+    s32 *reverbMultsR;
+};
+#endif
 
 #ifdef VERSION_EU
 struct ReverbSettingsEU

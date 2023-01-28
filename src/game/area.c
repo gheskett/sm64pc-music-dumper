@@ -206,6 +206,9 @@ void clear_areas(void) {
         gAreaData[i].dialog[1] = DIALOG_NONE;
         gAreaData[i].musicParam = 0;
         gAreaData[i].musicParam2 = 0;
+#ifdef BETTER_REVERB
+        gAreaData[i].betterReverbPreset = 0;
+#endif
     }
 }
 

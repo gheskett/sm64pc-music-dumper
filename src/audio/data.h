@@ -5,6 +5,7 @@
 
 #include "internal.h"
 #include "types.h"
+#include "synthesis.h"
 
 #define AUDIO_LOCK_UNINITIALIZED 0
 #define AUDIO_LOCK_NOT_LOADING 0x76557364
@@ -19,6 +20,10 @@ extern struct AudioSessionSettingsEU gAudioSessionPresets[];
 extern struct AudioSessionSettings gAudioSessionPresets[18];
 #endif
 extern u16 D_80332388[128]; // unused
+
+#ifdef BETTER_REVERB
+extern struct BetterReverbSettings gBetterReverbSettings[];
+#endif
 
 #if defined(VERSION_EU) || defined(VERSION_SH)
 extern f32 gPitchBendFrequencyScale[256];
@@ -140,8 +145,8 @@ extern OSMesgQueue *D_SH_80350FA8;
 #define AUDIO_INIT_POOL_SIZE 0x2c00
 #else
 #define UNUSED_COUNT_80333EE8 16
-#define AUDIO_HEAP_SIZE 0x31150 + 0x24400 + 0x17F00 + 0x8000 + 0x18000 + 0x100000 // Really who cares how much memory is allocated; it's PC Port!
-#define AUDIO_INIT_POOL_SIZE 0x2500 + 0x8000
+#define AUDIO_HEAP_SIZE ALIGN16(0x31150 + 0x24400 + 0x17F00 + 0x8000 + 0x18000 + REVERB_WINDOW_SIZE_MAX + BETTER_REVERB_SIZE + 0x100000) // Really who cares how much memory is allocated; it's PC Port!
+#define AUDIO_INIT_POOL_SIZE (0x2500 + 0x8000)
 #endif
 
 #ifdef VERSION_SH

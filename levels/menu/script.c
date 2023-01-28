@@ -59,9 +59,13 @@ const LevelScript level_main_menu_entry_1[] = {
     EXIT_AND_EXECUTE(/*seg*/ 0x15, _scriptsSegmentRomStart, _scriptsSegmentRomEnd, level_main_scripts_entry),
 };
 
+const LevelScript level_main_menu_entry_exit[] = {
+    EXIT(),
+};
+
 const LevelScript level_main_menu_entry_2[] = {
     /*0*/ CALL(/*arg*/ 0, /*func*/ lvl_set_current_level),
-    /*2*/ JUMP_IF(/*op*/ OP_EQ, /*arg*/ 0, level_main_menu_entry_2 + 42),
+    /*2*/ JUMP_IF(/*op*/ OP_EQ, /*arg*/ 0, level_main_menu_entry_exit),
     /*5*/ INIT_LEVEL(),
     /*6*/ FIXED_LOAD(/*loadAddr*/ _goddardSegmentStart, /*romStart*/ _goddardSegmentRomStart, /*romEnd*/ _goddardSegmentRomEnd),
     /*10*/ LOAD_MIO0(/*seg*/ 0x07, _menu_segment_7SegmentRomStart, _menu_segment_7SegmentRomEnd),
@@ -93,6 +97,5 @@ const LevelScript level_main_menu_entry_2[] = {
     /*39*/ SLEEP(/*frames*/ 16),
     /*40*/ CLEAR_LEVEL(),
     /*41*/ SLEEP_BEFORE_EXIT(/*frames*/ 1),
-    // L1:
     /*42*/ EXIT(),
 };

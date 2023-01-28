@@ -7,6 +7,19 @@
  * (maybe eventually) in SM64
  */
 
+
+
+/** 
+ * Uses a much better implementation of reverb over vanilla's fake echo reverb. Great for caves or eerie levels, as well as just a better audio experience in general.
+ * Reverb presets can be configured in audio/data.c to meet desired aesthetic/performance needs. More detailed usage info can also be found on the HackerSM64 Wiki page.
+ */
+#define BETTER_REVERB
+
+/**
+ * Emulate console parameters
+ */
+#define G_IS_CONSOLE FALSE
+
 // Bug Fixes
 // --| Post-JP Version Nintendo Bug Fixes
 /// Fixes bug where obtaining over 999 coins sets the number of lives to 999 (or -25)
@@ -48,6 +61,14 @@
 #else
 // What's the point of having a border?
 #define BORDER_HEIGHT 0
+#endif
+
+#if defined(BETTER_REVERB) && (defined(VERSION_EU) || defined(VERSION_SH))
+#undef BETTER_REVERB
+#endif
+
+#ifndef G_IS_CONSOLE
+#define G_IS_CONSOLE FALSE
 #endif
 
 #endif // CONFIG_H
