@@ -369,20 +369,27 @@ void adsr_init(struct AdsrState *adsr, struct AdsrEnvelope *envelope, UNUSED s16
 #if defined(VERSION_EU) || defined(VERSION_SH)
 f32 adsr_update(struct AdsrState *adsr) {
 #else
-s32 adsr_update(struct AdsrState *adsr) {
+s32 adsr_update(struct Note *note) {
+    u8 isInit = FALSE;
 #endif
-    u8 action = adsr->action;
+    u8 action;
     s16 tmp;
 #if defined(VERSION_EU) || defined(VERSION_SH)
     u8 state = adsr->state;
+    action = adsr->action;
     switch (state) {
 #else
+    struct AdsrState *adsr = &note->adsr;
+    action = adsr->action;
     switch (adsr->state) {
 #endif
         case ADSR_STATE_DISABLED:
             return 0;
 
-        case ADSR_STATE_INITIAL: {
+        case ADSR_STATE_INITIAL:
+            isInit = TRUE;
+            // fallthrough
+        case ADSR_STATE_RESTART: {
 #if defined(VERSION_JP) || defined(VERSION_US)
             adsr->current = adsr->initial;
             adsr->target = adsr->initial;
@@ -422,7 +429,7 @@ s32 adsr_update(struct AdsrState *adsr) {
                     break;
 #endif
                 case ADSR_RESTART:
-                    adsr->state = ADSR_STATE_INITIAL;
+                    adsr->state = ADSR_STATE_RESTART;
                     break;
 
                 default:
@@ -445,8 +452,12 @@ s32 adsr_update(struct AdsrState *adsr) {
                     adsr->target = adsr->target * adsr->target;
                     adsr->velocity = (adsr->target - adsr->current) / adsr->delay;
 #else
+                    if (isInit && adsr->delay <= 1) {
+                        note->initFullVelocity = TRUE;
+                    }
+
                     adsr->delay = (s16) ((f32) adsr->delay * gAudioUpdatesPerFrame / 4.0f + 0.5f);
-                    if (adsr->delay <= 0)
+                    if (note->initFullVelocity || adsr->delay <= 0)
                         adsr->delay = 1;
 
                     adsr->target = BSWAP16(adsr->envelope[adsr->envIndex].arg);

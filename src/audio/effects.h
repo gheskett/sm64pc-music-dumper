@@ -15,6 +15,7 @@
 #define ADSR_STATE_DECAY 6
 #define ADSR_STATE_RELEASE 7
 #define ADSR_STATE_SUSTAIN 8
+#define ADSR_STATE_RESTART 9
 
 #define ADSR_ACTION_RELEASE 0x10
 #define ADSR_ACTION_DECAY 0x20
@@ -40,7 +41,7 @@ void adsr_init(struct AdsrState *adsr, struct AdsrEnvelope *envelope, s16 *volOu
 #if defined(VERSION_EU) || defined(VERSION_SH)
 f32 adsr_update(struct AdsrState *adsr);
 #else
-s32 adsr_update(struct AdsrState *adsr);
+s32 adsr_update(struct Note *note);
 #endif
 
 #endif // AUDIO_EFFECTS_H
