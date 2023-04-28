@@ -7,6 +7,10 @@
 #include "types.h"
 #include "synthesis.h"
 
+// Vanilla US/JP uses 7; Vanilla EU opts for 10 here effectively, though that one gets generated at runtime and doesn't use this value.
+// Total memory usage is calculated by 24*(2^VOL_RAMPING_EXPONENT) bytes. This is not technically on the heap, but it's memory nonetheless.
+#define VOL_RAMPING_EXPONENT 9
+
 #define AUDIO_LOCK_UNINITIALIZED 0
 #define AUDIO_LOCK_NOT_LOADING 0x76557364
 #define AUDIO_LOCK_LOADING 0x19710515
@@ -61,12 +65,12 @@ extern f32 gHeadsetPanVolume[128];
 extern f32 gStereoPanVolume[128];
 extern f32 gDefaultPanVolume[128];
 
-extern f32 gVolRampingLhs136[128];
-extern f32 gVolRampingRhs136[128];
-extern f32 gVolRampingLhs144[128];
-extern f32 gVolRampingRhs144[128];
-extern f32 gVolRampingLhs128[128];
-extern f32 gVolRampingRhs128[128];
+extern f32 gVolRampingLhs136[1 << VOL_RAMPING_EXPONENT];
+extern f32 gVolRampingRhs136[1 << VOL_RAMPING_EXPONENT];
+extern f32 gVolRampingLhs144[1 << VOL_RAMPING_EXPONENT];
+extern f32 gVolRampingRhs144[1 << VOL_RAMPING_EXPONENT];
+extern f32 gVolRampingLhs128[1 << VOL_RAMPING_EXPONENT];
+extern f32 gVolRampingRhs128[1 << VOL_RAMPING_EXPONENT];
 
 // non-constant .data
 extern s16 gTatumsPerBeat;

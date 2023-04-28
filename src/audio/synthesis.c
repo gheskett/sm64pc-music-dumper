@@ -423,16 +423,16 @@ s32 get_volume_ramping(u16 sourceVol, u16 targetVol, s32 arg2) {
     f32 ret;
     switch (arg2) {
         default:
-            ret = gVolRampingLhs136[targetVol >> 8] * gVolRampingRhs136[sourceVol >> 8];
+            ret = gVolRampingLhs136[targetVol >> (15 - VOL_RAMPING_EXPONENT)] * gVolRampingRhs136[sourceVol >> (15 - VOL_RAMPING_EXPONENT)];
             break;
         case 128:
-            ret = gVolRampingLhs128[targetVol >> 8] * gVolRampingRhs128[sourceVol >> 8];
+            ret = gVolRampingLhs128[targetVol >> (15 - VOL_RAMPING_EXPONENT)] * gVolRampingRhs128[sourceVol >> (15 - VOL_RAMPING_EXPONENT)];
             break;
         case 136:
-            ret = gVolRampingLhs136[targetVol >> 8] * gVolRampingRhs136[sourceVol >> 8];
+            ret = gVolRampingLhs136[targetVol >> (15 - VOL_RAMPING_EXPONENT)] * gVolRampingRhs136[sourceVol >> (15 - VOL_RAMPING_EXPONENT)];
             break;
         case 144:
-            ret = gVolRampingLhs144[targetVol >> 8] * gVolRampingRhs144[sourceVol >> 8];
+            ret = gVolRampingLhs144[targetVol >> (15 - VOL_RAMPING_EXPONENT)] * gVolRampingRhs144[sourceVol >> (15 - VOL_RAMPING_EXPONENT)];
             break;
     }
     return ret;
@@ -1633,6 +1633,7 @@ void note_init_volume(struct Note *note) {
     note->frequency = 0.0f;
 }
 
+#define VOLRAMPING_MASK (~(0x8000 | ((1 << (15 - VOL_RAMPING_EXPONENT)) - 1)))
 void note_set_vel_pan_reverb(struct Note *note, f32 velocity, f32 pan, u8 reverbVol) {
     s32 panIndex;
     f32 volLeft;
@@ -1694,8 +1695,8 @@ void note_set_vel_pan_reverb(struct Note *note, f32 velocity, f32 pan, u8 reverb
     note->targetVolLeft = (u16)(velocity * volLeft) & ~0x80FF; // 0x7F00, but that doesn't match
     note->targetVolRight = (u16)(velocity * volRight) & ~0x80FF;
 #else
-    note->targetVolLeft = (u16)(s32)(velocity * volLeft) & ~0x80FF;
-    note->targetVolRight = (u16)(s32)(velocity * volRight) & ~0x80FF;
+    note->targetVolLeft = (u16)(s32)(velocity * volLeft) & VOLRAMPING_MASK;
+    note->targetVolRight = (u16)(s32)(velocity * volRight) & VOLRAMPING_MASK;
 #endif
     if (note->targetVolLeft == 0) {
         note->targetVolLeft++;
@@ -1716,6 +1717,7 @@ void note_set_vel_pan_reverb(struct Note *note, f32 velocity, f32 pan, u8 reverb
         note->envMixerNeedsInit = FALSE;
     }
 }
+#undef VOLRAMPING_MASK
 
 void note_set_frequency(struct Note *note, f32 frequency) {
     note->frequency = frequency;
