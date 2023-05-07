@@ -21,10 +21,10 @@
 #define ADSR_ACTION_DECAY 0x20
 #define ADSR_ACTION_HANG 0x40
 
-#define ADSR_DISABLE 0
 #define ADSR_HANG -1
 #define ADSR_GOTO -2
 #define ADSR_RESTART -3
+#define ADSR_DISABLE -4
 
 // Envelopes are always stored as big endian, to match sequence files which are
 // byte blobs and can embed envelopes. Hence this byteswapping macro.

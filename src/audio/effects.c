@@ -452,12 +452,13 @@ s32 adsr_update(struct Note *note) {
                     adsr->target = adsr->target * adsr->target;
                     adsr->velocity = (adsr->target - adsr->current) / adsr->delay;
 #else
-                    if (isInit && adsr->delay <= 1) {
-                        note->initFullVelocity = TRUE;
+                    if (adsr->delay <= 0) {
+                        adsr->delay = 1;
+                        note->initFullVelocity = isInit;
                     }
 
                     adsr->delay = (s16) ((f32) adsr->delay * gAudioUpdatesPerFrame / 4.0f + 0.5f);
-                    if (note->initFullVelocity || adsr->delay <= 0)
+                    if (adsr->delay <= 0)
                         adsr->delay = 1;
 
                     adsr->target = BSWAP16(adsr->envelope[adsr->envIndex].arg);
