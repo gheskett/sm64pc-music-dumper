@@ -396,6 +396,13 @@ struct ReverbInfo {
     s16 *filter;
 };
 
+struct HighLowPassFilterInfo {
+    s16 intensityLPF;
+    s16 intensityHPF;
+    s32 historySampleLPF;
+    s32 historySampleHPF;
+};
+
 struct NoteAttributes {
     u8 reverbVol;
 #ifdef VERSION_SH
@@ -415,7 +422,9 @@ struct NoteAttributes {
 #ifdef VERSION_SH
     s16 *filter;
 #endif
-}; // size = 0x10
+    s16 lpfIntensity;
+    s16 hpfIntensity;
+}; // size = 0x14
 
 // Also known as a SubTrack, according to debug strings.
 // Confusingly, a SubTrack is a container of Tracks.
@@ -502,7 +511,9 @@ struct SequenceChannel {
     /*            0xC8*/ u16 unkC8;
     /*            0xCC*/ s16 *filter;
 #endif
-}; // size = 0xC0, 0xC4 in EU, 0xD0 in SH
+    /*0xC0, 0xC4, 0xD0*/ s16 lpfIntensity;
+    /*0xC2, 0xC6, 0xD2*/ s16 hpfIntensity;
+}; // size = 0xC4, 0xC8 in EU, 0xD4 in SH
 
 // Also known as a Track, according to debug strings.
 struct SequenceChannelLayer {
@@ -557,10 +568,12 @@ struct SequenceChannelLayer {
     /*0x50, 0x4C, 0x50*/ struct SequenceChannel *seqChannel;
     /*0x54, 0x50*/ struct M64ScriptState scriptState;
     /*0x70, 0x6C*/ struct AudioListItem listItem;
-#if defined(VERSION_EU)
-    u8 pad2[4];
+    s16 lpfIntensity;
+    s16 hpfIntensity;
+#if !defined(VERSION_EU)
+    u8 pad2[0xc];
 #endif
-}; // size = 0x80
+}; // size = 0x90
 
 #if defined(VERSION_EU) || defined(VERSION_SH)
 struct NoteSynthesisState {
@@ -710,19 +723,20 @@ struct Note {
     /*0x64*/ struct Portamento portamento;
     /*0x74*/ struct VibratoState vibratoState;
     /*0x8C*/ struct AudioListItem listItem;
-    /*0x9C*/ s16 curVolLeft; // Q1.15, but will always be non-negative
-    /*0x9E*/ s16 curVolRight; // Q1.15, but will always be non-negative
-    /*0xA0*/ s16 reverbVolShifted; // Q1.15
+    /*0x9C*/ struct HighLowPassFilterInfo lhpf;
+    /*0x88*/ s16 curVolLeft; // Q1.15, but will always be non-negative
+    /*0xAA*/ s16 curVolRight; // Q1.15, but will always be non-negative
+    /*0xAC*/ s16 reverbVolShifted; // Q1.15
 #ifdef ENABLE_STEREO_HEADSET_EFFECTS
-    /*0xA2*/ u16 headsetPanRight;
-    /*0xA4*/ u16 headsetPanLeft;
-    /*0xA6*/ u16 prevHeadsetPanRight;
-    /*0xA8*/ u16 prevHeadsetPanLeft;
-    /*    */ u8 align16Padding[0x06];
+    /*0xAE*/ u16 headsetPanRight;
+    /*0xB0*/ u16 headsetPanLeft;
+    /*0xB2*/ u16 prevHeadsetPanRight;
+    /*0xB4*/ u16 prevHeadsetPanLeft;
+    /*    */ u8 align16Padding[0x0a];
 #else
-    /*    */ u8 align16Padding[0x0E];
+    /*    */ u8 align16Padding[0x02];
 #endif
-}; // size = 0xB0
+}; // size = 0xC0 or 0xB0
 #endif
 
 struct NoteSynthesisBuffers {

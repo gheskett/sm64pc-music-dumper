@@ -1277,6 +1277,9 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
             // final resample
             aSetBuffer(cmd++, /*flags*/ 0, noteSamplesDmemAddrBeforeResampling, /*dmemout*/ DMEM_ADDR_TEMP, bufLen * 2);
             aResample(cmd++, flags, resamplingRateFixedPoint, VIRTUAL_TO_PHYSICAL2(note->synthesisBuffers->finalResampleState));
+
+            aHighLowPassFilter(cmd++, A_LPF, note->lhpf.intensityLPF, &note->lhpf.historySampleLPF);
+            aHighLowPassFilter(cmd++, A_HPF, note->lhpf.intensityHPF, &note->lhpf.historySampleHPF);
 #endif
 
 #ifdef ENABLE_STEREO_HEADSET_EFFECTS
@@ -1769,6 +1772,10 @@ void note_enable(struct Note *note) {
     note->prevHeadsetPanRight = 0;
     note->prevHeadsetPanLeft = 0;
 #endif
+    note->lhpf.intensityLPF = 0;
+    note->lhpf.intensityHPF = 0;
+    note->lhpf.historySampleLPF = 0;
+    note->lhpf.historySampleHPF = 0;
 }
 
 void note_disable(struct Note *note) {

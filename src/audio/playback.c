@@ -8,6 +8,7 @@
 #include "synthesis.h"
 #include "effects.h"
 #include "external.h"
+#include "engine/math_util.h"
 
 void note_set_resampling_rate(struct Note *note, f32 resamplingRateInput);
 
@@ -586,11 +587,38 @@ void process_notes(void) {
                 velocity = attributes->velocity;
                 pan = attributes->pan;
                 reverbVol = attributes->reverbVol;
+                note->lhpf.intensityLPF = attributes->lpfIntensity;
+                note->lhpf.intensityHPF = attributes->hpfIntensity;
             } else {
                 frequency = note->parentLayer->noteFreqScale;
                 velocity = note->parentLayer->noteVelocity;
                 pan = note->parentLayer->notePan;
                 reverbVol = note->parentLayer->seqChannel->reverbVol;
+                note->lhpf.intensityLPF = note->parentLayer->lpfIntensity;
+                note->lhpf.intensityHPF = note->parentLayer->hpfIntensity;
+            }
+
+            if (note->lhpf.intensityLPF != 0) {
+                if (note->lhpf.intensityLPF > 0) {
+                    s32 tmp = (S16_MAX - note->lhpf.intensityLPF) / SAMPLE_RATE_DIFF + 0.5f;
+                    tmp = CLAMP(tmp, 0, S16_MAX);
+                    note->lhpf.intensityLPF = S16_MAX - tmp;
+                } else {
+                    s32 tmp = (S16_MIN - note->lhpf.intensityLPF) / SAMPLE_RATE_DIFF + 0.5f;
+                    tmp = CLAMP(tmp, S16_MIN, 0);
+                    note->lhpf.intensityLPF = S16_MIN - tmp;
+                }
+            }
+            if (note->lhpf.intensityHPF != 0) {
+                if (note->lhpf.intensityHPF > 0) {
+                    s32 tmp = (S16_MAX - note->lhpf.intensityHPF) / SAMPLE_RATE_DIFF + 0.5f;
+                    tmp = CLAMP(tmp, 0, S16_MAX);
+                    note->lhpf.intensityHPF = S16_MAX - tmp;
+                } else {
+                    s32 tmp = (S16_MIN - note->lhpf.intensityHPF) / SAMPLE_RATE_DIFF + 0.5f;
+                    tmp = CLAMP(tmp, S16_MIN, 0);
+                    note->lhpf.intensityHPF = S16_MIN - tmp;
+                }
             }
 
             scale = note->adsrVolScale;
@@ -728,6 +756,8 @@ void seq_channel_layer_decay_release_internal(struct SequenceChannelLayer *seqLa
         attributes->freqScale = seqLayer->noteFreqScale;
         attributes->velocity = seqLayer->noteVelocity;
         attributes->pan = seqLayer->notePan;
+        attributes->lpfIntensity = seqLayer->lpfIntensity;
+        attributes->hpfIntensity = seqLayer->hpfIntensity;
 #ifdef VERSION_SH
         attributes->reverbBits = seqLayer->reverbBits;
 #endif

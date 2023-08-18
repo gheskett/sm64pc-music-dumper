@@ -75,6 +75,16 @@ static void sequence_channel_process_sound(struct SequenceChannel *seqChannel) {
             layer->noteFreqScale = layer->freqScale * channelFreqScale;
             layer->noteVelocity = layer->velocitySquare * channelVolume;
             layer->notePan = (layer->pan * panLayerWeight) + panFromChannel;
+
+            // Override layer lpf and hpf completely when applicable
+            // NOTE: CPU tradeoff isn't worth it here in practice for mathematical overlapping,
+            // as nobody will likely ever need this for both channels and layers simultaneously
+            if (seqChannel->lpfIntensity != 0) {
+               layer->lpfIntensity = seqChannel->lpfIntensity;
+            }
+            if (seqChannel->hpfIntensity != 0) {
+               layer->lpfIntensity = seqChannel->hpfIntensity;
+            }
         }
     }
 }

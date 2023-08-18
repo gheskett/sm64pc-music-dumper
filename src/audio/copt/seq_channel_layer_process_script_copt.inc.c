@@ -214,6 +214,20 @@ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
                 }
                 break;
 
+            case 0xcb: // layer_lowpassfilter
+                temp_a0_5 = *(state->pc++);
+                layer->lpfIntensity = 0x8000 - ((sqr(0x80 - (u32) temp_a0_5) << 8) / 0x80); // NOTE: LPF value is exponential
+                if (layer->lpfIntensity < 0) {
+                    layer->lpfIntensity = 0;
+                }
+                break;
+            case 0xcc: // layer_highpassfilter
+                layer->hpfIntensity = (u32) *(state->pc++) << 8; // NOTE: HPF value is linear
+                if (layer->hpfIntensity < 0) {
+                    layer->hpfIntensity = 0;
+                }
+                break;
+
             case 0xc2: // layer_transpose; set transposition in semitones
             case 0xc9: // layer_setshortnoteduration
                 temp_a0_5 = *(state->pc++);

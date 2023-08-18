@@ -6,6 +6,7 @@
 #include "heap.h"
 #include "load.h"
 #include "seqplayer.h"
+#include "engine/math_util.h"
 
 #ifdef VERSION_SH
 void seq_channel_layer_process_script_part1(struct SequenceChannelLayer *layer);
@@ -79,6 +80,8 @@ void sequence_channel_init(struct SequenceChannel *seqChannel) {
     seqChannel->volumeScale = 1.0f;
     seqChannel->freqScale = 1.0f;
 #endif
+    seqChannel->lpfIntensity = 0;
+    seqChannel->hpfIntensity = 0;
 
     for (i = 0; i < 8; i++) {
         seqChannel->soundScriptIO[i] = -1;
@@ -142,6 +145,8 @@ s32 seq_channel_set_layer(struct SequenceChannel *seqChannel, s32 layerIndex) {
 #else
     layer->velocitySquare = 0.0f;
     layer->pan = 0.5f;
+    layer->lpfIntensity = 0;
+    layer->hpfIntensity = 0;
 #endif
     return 0;
 }
@@ -562,6 +567,20 @@ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
 #else
                     layer->pan = (f32) temp_a0_5 / 128.0f;
 #endif
+                }
+                break;
+
+            case 0xcb: // layer_lowpassfilter
+                temp_a0_5 = *(state->pc++);
+                layer->lpfIntensity = 0x8000 - ((sqr(0x80 - (u32) temp_a0_5) << 8) / 0x80); // NOTE: LPF value is exponential
+                if (layer->lpfIntensity < 0) {
+                    layer->lpfIntensity = 0;
+                }
+                break;
+            case 0xcc: // layer_highpassfilter
+                layer->hpfIntensity = (u32) *(state->pc++) << 8; // NOTE: HPF value is linear
+                if (layer->hpfIntensity < 0) {
+                    layer->hpfIntensity = 0;
                 }
                 break;
 
@@ -1043,6 +1062,20 @@ s32 seq_channel_layer_process_script_part2(struct SequenceChannelLayer *layer) {
                     layer->velocitySquare = (f32) (temp_a0_5 * temp_a0_5) / (f32) (127 * 127);
                 } else {
                     layer->pan = temp_a0_5;
+                }
+                break;
+
+            case 0xcb: // layer_lowpassfilter
+                temp_a0_5 = *(state->pc++);
+                layer->lpfIntensity = 0x8000 - ((sqr(0x80 - (u32) temp_a0_5) << 8) / 0x80); // NOTE: LPF value is exponential
+                if (layer->lpfIntensity < 0) {
+                    layer->lpfIntensity = 0;
+                }
+                break;
+            case 0xcc: // layer_highpassfilter
+                layer->hpfIntensity = (u32) *(state->pc++) << 8; // NOTE: HPF value is linear
+                if (layer->hpfIntensity < 0) {
+                    layer->hpfIntensity = 0;
                 }
                 break;
 
@@ -1913,6 +1946,19 @@ void sequence_channel_process_script(struct SequenceChannel *seqChannel) {
                             sp5A = ((seqData[0] << 8) + seqData[1]);
                             state->pc = seqPlayer->seqData + sp5A;
 #endif
+                        }
+                        break;
+                    case 0xe5: // chan_lowpassfilter
+                        temp = m64_read_u8(state);
+                        seqChannel->lpfIntensity = 0x8000 - ((sqr(0x80 - (u32) temp) << 8) / 0x80); // NOTE: LPF value is exponential
+                        if (seqChannel->lpfIntensity < 0) {
+                            seqChannel->lpfIntensity = 0;
+                        }
+                        break;
+                    case 0xe6: // chan_highpassfilter
+                        seqChannel->hpfIntensity = (u32) m64_read_u8(state) << 8; // NOTE: HPF value is linear
+                        if (seqChannel->hpfIntensity < 0) {
+                            seqChannel->hpfIntensity = 0;
                         }
                         break;
 

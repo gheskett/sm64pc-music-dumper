@@ -43,6 +43,7 @@ void aDMEMMoveImpl(uint16_t in_addr, uint16_t out_addr, int nbytes);
 void aSetLoopImpl(ADPCM_STATE *adpcm_loop_state);
 void aADPCMdecImpl(uint8_t flags, ADPCM_STATE state);
 void aResampleImpl(uint8_t flags, uint16_t pitch, RESAMPLE_STATE state);
+void aHighLowPassFilterImpl(uint8_t flags, int16_t intensity, int32_t *history);
 
 #ifndef NEW_AUDIO_UCODE
 void aSetVolumeImpl(uint8_t flags, int16_t v, int16_t t, int16_t r);
@@ -81,6 +82,7 @@ void aUnknown25Impl(uint8_t f, uint16_t count, uint16_t out_addr, uint16_t in_ad
 #define aSetLoop(pkt, a) aSetLoopImpl(a)
 #define aADPCMdec(pkt, f, s) aADPCMdecImpl(f, s)
 #define aResample(pkt, f, p, s) aResampleImpl(f, p, s)
+#define aHighLowPassFilter(pkt, f, i, h) aHighLowPassFilterImpl(f, i, h)
 
 #ifndef NEW_AUDIO_UCODE
 #define aSetVolume(pkt, f, v, t, r) aSetVolumeImpl(f, v, t, r)

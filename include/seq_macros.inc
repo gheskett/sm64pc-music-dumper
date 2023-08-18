@@ -388,6 +388,16 @@
     .byte 0xe4
 .endm
 
+.macro chan_lowpassfilter a
+    .byte 0xe5
+    .byte \a
+.endm
+
+.macro chan_highpassfilter a
+    .byte 0xe6
+    .byte \a
+.endm
+
 .macro chan_hang
     .byte 0xf3
 .endm
@@ -640,6 +650,16 @@
 
 .macro layer_setpan a
     .byte 0xca
+    .byte \a
+.endm
+
+.macro layer_lowpassfilter a
+    .byte 0xcb
+    .byte \a
+.endm
+
+.macro layer_highpassfilter a
+    .byte 0xcc
     .byte \a
 .endm
 

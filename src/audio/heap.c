@@ -1360,7 +1360,7 @@ void audio_reset_session(void) {
 #else
     gTempoInternalToExternal = updatesPerFrame * 60 * 60; // PC Port change ONLY, do not port this elsewhere!
 #endif
-    gMaxAudioCmds = gMaxSimultaneousNotes * 20 * updatesPerFrame + 320;
+    gMaxAudioCmds = gMaxSimultaneousNotes * 23 * updatesPerFrame + 320;
 #endif
 
 #if defined(VERSION_SH)

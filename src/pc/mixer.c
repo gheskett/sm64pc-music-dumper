@@ -595,6 +595,39 @@ void aResampleImpl(uint8_t flags, uint16_t pitch, RESAMPLE_STATE state) {
     memcpy(state + 8, in, 8 * sizeof(int16_t));
 }
 
+void aHighLowPassFilterImpl(uint8_t flags, int16_t intensity, int32_t *history) {
+    int16_t newIntensity;
+    uint16_t count = ROUND_UP_16(rspa.nbytes) >> 1;
+    int32_t histInternal = *history;
+    int16_t *buf = BUF_S16(rspa.out);
+
+    if (count == 0) {
+        return;
+    }
+
+    if (intensity == 0) {
+        *history = *(buf + (count - 1));
+        return;
+    }
+
+    if (flags == A_HPF) {
+        newIntensity = intensity;
+        do {
+            histInternal = (int32_t) ((newIntensity * (int32_t) (*buf - histInternal)) >> 15) + histInternal;
+            *buf = clamp16(*buf - histInternal);
+            buf++;
+        } while (--count > 0);
+    } else {
+        newIntensity = (1 << 15) - intensity;
+        do {
+            histInternal = (int32_t) ((newIntensity * (int32_t) (*buf - histInternal)) >> 15) + histInternal;
+            *buf++ = clamp16(histInternal);
+        } while (--count > 0);
+    }
+
+    *history = histInternal;
+}
+
 #ifdef NEW_AUDIO_UCODE
 void aEnvSetup1Impl(uint8_t initial_vol_wet, uint16_t rate_wet, uint16_t rate_left, uint16_t rate_right) {
     rspa.vol_wet = (uint16_t)(initial_vol_wet << 8);

@@ -89,6 +89,9 @@
 #define A_MAIN                  0x00
 #define A_MIX                   0x10
 
+#define A_LPF                   0x00
+#define A_HPF                   0x01
+
 /*
  * BEGIN C-specific section: (typedef's)
  */
