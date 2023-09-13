@@ -4,6 +4,7 @@
 #include "seq_ids.h"
 #include "dialog_ids.h"
 #include "audio/external.h"
+#include "audio/synthesis.h"
 #include "level_update.h"
 #include "game_init.h"
 #include "level_update.h"
@@ -428,6 +429,9 @@ void init_mario_after_warp(void) {
     }
 
     if (gCurrDemoInput == NULL) {
+#ifdef BETTER_REVERB
+        gBetterReverbPresetValue = gCurrentArea->betterReverbPreset;
+#endif
         set_background_music(gCurrentArea->musicParam, gCurrentArea->musicParam2, 0);
 
         if (gMarioState->flags & MARIO_METAL_CAP) {
@@ -529,6 +533,9 @@ void warp_credits(void) {
     play_transition(WARP_TRANSITION_FADE_FROM_COLOR, 0x14, 0x00, 0x00, 0x00);
 
     if (gCurrCreditsEntry == NULL || gCurrCreditsEntry == sCreditsSequence) {
+#ifdef BETTER_REVERB
+        gBetterReverbPresetValue = gCurrentArea->betterReverbPreset;
+#endif
         set_background_music(gCurrentArea->musicParam, gCurrentArea->musicParam2, 0);
     }
 }
@@ -573,46 +580,33 @@ void check_instant_warp(void) {
 s16 music_changed_through_warp(s16 arg) {
     struct ObjectWarpNode *warpNode = area_get_warp_node(arg);
     s16 levelNum = warpNode->node.destLevel & 0x7F;
-
-#if BUGFIX_KOOPA_RACE_MUSIC
-
     s16 destArea = warpNode->node.destArea;
-    s16 val4 = TRUE;
-    s16 sp2C;
+    s16 unchanged = TRUE;
+    s16 currBgMusic;
 
     if (levelNum == LEVEL_BOB && levelNum == gCurrLevelNum && destArea == gCurrAreaIndex) {
-        sp2C = get_current_background_music();
-        if (sp2C == SEQUENCE_ARGS(4, SEQ_EVENT_POWERUP | SEQ_VARIATION)
-            || sp2C == SEQUENCE_ARGS(4, SEQ_EVENT_POWERUP)) {
-            val4 = FALSE;
+        currBgMusic = get_current_background_music();
+        if (currBgMusic == SEQUENCE_ARGS(4, SEQ_EVENT_POWERUP | SEQ_VARIATION)
+            || currBgMusic == SEQUENCE_ARGS(4, SEQ_EVENT_POWERUP)) {
+            unchanged = FALSE;
         }
     } else {
-        u16 val8 = gAreas[destArea].musicParam;
-        u16 val6 = gAreas[destArea].musicParam2;
+        u16 destParam1 = gAreas[destArea].musicParam;
+        u16 destParam2 = gAreas[destArea].musicParam2;
+#ifdef BETTER_REVERB
+        u16 destParam3 = gAreas[destArea].betterReverbPreset;
+        unchanged = levelNum == gCurrLevelNum && destParam1 == gCurrentArea->musicParam
+               && destParam2 == gCurrentArea->musicParam2 && destParam3 == gCurrentArea->betterReverbPreset;
+#else
+        unchanged = levelNum == gCurrLevelNum && destParam1 == gCurrentArea->musicParam
+               && destParam2 == gCurrentArea->musicParam2;
+#endif
 
-        val4 = levelNum == gCurrLevelNum && val8 == gCurrentArea->musicParam
-               && val6 == gCurrentArea->musicParam2;
-
-        if (get_current_background_music() != val6) {
-            val4 = FALSE;
+        if (get_current_background_music() != destParam2) {
+            unchanged = FALSE;
         }
     }
-    return val4;
-
-#else
-
-    u16 val8 = gAreas[warpNode->node.destArea].musicParam;
-    u16 val6 = gAreas[warpNode->node.destArea].musicParam2;
-
-    s16 val4 = levelNum == gCurrLevelNum && val8 == gCurrentArea->musicParam
-               && val6 == gCurrentArea->musicParam2;
-
-    if (get_current_background_music() != val6) {
-        val4 = FALSE;
-    }
-    return val4;
-
-#endif
+    return unchanged;
 }
 
 /**
@@ -1211,6 +1205,9 @@ s32 init_level(void) {
         }
 
         if (gCurrDemoInput == NULL) {
+#ifdef BETTER_REVERB
+            gBetterReverbPresetValue = gCurrentArea->betterReverbPreset;
+#endif
             set_background_music(gCurrentArea->musicParam, gCurrentArea->musicParam2, 0);
         }
     }

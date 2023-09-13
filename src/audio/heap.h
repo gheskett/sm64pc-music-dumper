@@ -4,13 +4,16 @@
 #include <PR/ultratypes.h>
 
 #include "internal.h"
+#include "data.h"
 
-#define SOUND_LOAD_STATUS_NOT_LOADED     0
-#define SOUND_LOAD_STATUS_IN_PROGRESS    1
-#define SOUND_LOAD_STATUS_COMPLETE       2
-#define SOUND_LOAD_STATUS_DISCARDABLE    3
-#define SOUND_LOAD_STATUS_4              4
-#define SOUND_LOAD_STATUS_5              5
+enum SoundLoadStatus {
+    SOUND_LOAD_STATUS_NOT_LOADED,
+    SOUND_LOAD_STATUS_IN_PROGRESS,
+    SOUND_LOAD_STATUS_COMPLETE,
+    SOUND_LOAD_STATUS_DISCARDABLE,
+    SOUND_LOAD_STATUS_4,
+    SOUND_LOAD_STATUS_5
+};
 
 #define IS_BANK_LOAD_COMPLETE(bankId) (gBankLoadStatus[bankId] >= SOUND_LOAD_STATUS_COMPLETE)
 #define IS_SEQ_LOAD_COMPLETE(seqId) (gSeqLoadStatus[seqId] >= SOUND_LOAD_STATUS_COMPLETE)
@@ -36,8 +39,14 @@ struct SeqOrBankEntry {
 struct PersistentPool {
     /*0x00*/ u32 numEntries;
     /*0x04*/ struct SoundAllocPool pool;
+#ifdef EXPAND_AUDIO_HEAP // TODO: Make this a configurable define rather than using static values
+    /*0x14*/ struct SeqOrBankEntry entries[64];
+    // size = 0x314
+#else
     /*0x14*/ struct SeqOrBankEntry entries[32];
-}; // size = 0x194
+    // size = 0x194
+#endif
+};
 
 struct TemporaryPool {
     /*EU,   SH*/
@@ -62,9 +71,14 @@ struct SoundMultiPool {
     /*     */ u32 pad2[4];
 }; // size = 0x1D0
 
+#ifdef VERSION_SH
 struct Unk1Pool {
     struct SoundAllocPool pool;
+#ifdef EXPAND_AUDIO_HEAP
+    struct SeqOrBankEntry entries[64];
+#else
     struct SeqOrBankEntry entries[32];
+#endif
 };
 
 struct UnkEntry {
@@ -83,6 +97,7 @@ struct UnkPool {
     /*0x510*/ s32 numEntries;
     /*0x514*/ u32 unk514;
 };
+#endif
 
 extern u8 gAudioHeap[];
 extern s16 gVolume;
@@ -91,6 +106,9 @@ extern struct SoundAllocPool gAudioInitPool;
 extern struct SoundAllocPool gNotesAndBuffersPool;
 extern struct SoundAllocPool gPersistentCommonPool;
 extern struct SoundAllocPool gTemporaryCommonPool;
+#ifdef BETTER_REVERB
+extern struct SoundAllocPool gBetterReverbPool;
+#endif
 extern struct SoundMultiPool gSeqLoadedPool;
 extern struct SoundMultiPool gBankLoadedPool;
 #ifdef VERSION_SH
@@ -98,8 +116,8 @@ extern struct Unk1Pool gUnkPool1;
 extern struct UnkPool gUnkPool2;
 extern struct UnkPool gUnkPool3;
 #endif
-extern u8 gBankLoadStatus[64];
-extern u8 gSeqLoadStatus[256];
+extern u8 gBankLoadStatus[MAX_NUM_SOUNDBANKS];
+extern u8 gSeqLoadStatus[0x100];
 extern volatile u8 gAudioResetStatus;
 extern u8 gAudioResetPresetIdToLoad;
 
@@ -111,6 +129,9 @@ void *soundAlloc(struct SoundAllocPool *pool, u32 size);
 void *sound_alloc_uninitialized(struct SoundAllocPool *pool, u32 size);
 void sound_init_main_pools(s32 sizeForAudioInitPool);
 void sound_alloc_pool_init(struct SoundAllocPool *pool, void *memAddr, u32 size);
+#ifdef PUPPYPRINT_DEBUG
+void puppyprint_get_allocated_pools(s32 *audioPoolList);
+#endif
 #ifdef VERSION_SH
 void *alloc_bank_or_seq(s32 poolIdx, s32 size, s32 arg3, s32 id);
 void *get_bank_or_seq(s32 poolIdx, s32 arg1, s32 id);
@@ -119,10 +140,12 @@ void *alloc_bank_or_seq(struct SoundMultiPool *arg0, s32 arg1, s32 size, s32 arg
 void *get_bank_or_seq(struct SoundMultiPool *arg0, s32 arg1, s32 id);
 #endif
 #if defined(VERSION_EU) || defined(VERSION_SH)
+void init_reverb_eu(void);
 s32 audio_shut_down_and_reset_step(void);
 void audio_reset_session(void);
 #else
-void audio_reset_session(struct AudioSessionSettings *preset);
+void init_reverb_us(s32 presetId);
+void audio_reset_session(s32 reverbPresetId);
 #endif
 void discard_bank(s32 bankId);
 

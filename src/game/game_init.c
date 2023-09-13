@@ -20,6 +20,9 @@
 #include "segment_symbols.h"
 #include "rumble_init.h"
 
+// Emulators that the Instant Input patch should not be applied to
+#define INSTANT_INPUT_BLACKLIST (EMU_CONSOLE | EMU_WIIVC | EMU_ARES | EMU_SIMPLE64 | EMU_CEN64)
+
 // First 3 controller slots
 struct Controller gControllers[3];
 
@@ -39,9 +42,7 @@ struct GfxPool *gGfxPool;
 OSContStatus gControllerStatuses[4];
 OSContPad gControllerPads[4];
 u8 gControllerBits;
-s8 gEepromProbe; // Save Data Probe
-
-// OS Messages
+s8 gEepromProbe;
 OSMesgQueue gGameVblankQueue;
 OSMesgQueue gGfxVblankQueue;
 OSMesg gGameMesgBuf[1];
@@ -292,9 +293,6 @@ void init_rcp(void) {
  */
 void end_master_display_list(void) {
     draw_screen_borders();
-    if (gShowProfiler) {
-        draw_profiler();
-    }
 
     gDPFullSync(gDisplayListHead++);
     gSPEndDisplayList(gDisplayListHead++);

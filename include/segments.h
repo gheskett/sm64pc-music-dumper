@@ -18,7 +18,6 @@
 */
 
 #define USE_EXT_RAM
-
 #ifndef USE_EXT_RAM
 #define RAM_END          0x80400000
 #else

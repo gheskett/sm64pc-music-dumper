@@ -53,6 +53,31 @@
 #define ALIGNED16
 #endif
 
+// Align to 32-byte boundary.
+#ifdef __GNUC__
+#define ALIGNED32 __attribute__((aligned(32)))
+#else
+#define ALIGNED32
+#endif
+
+// Align to 64-byte boundary.
+#ifdef __GNUC__
+#define ALIGNED64 __attribute__((aligned(64)))
+#else
+#define ALIGNED64
+#endif
+
+#ifndef ALIGN
+#define ALIGN(VAL_, ALIGNMENT_) (((VAL_) + ((ALIGNMENT_) - 1)) & ~((ALIGNMENT_) - 1))
+#endif
+
+// Round up to the next multiple.
+#define ALIGN4(val)  ALIGN((val),  4)
+#define ALIGN8(val)  ALIGN((val),  8)
+#define ALIGN16(val) ALIGN((val), 16)
+#define ALIGN32(val) ALIGN((val), 32)
+#define ALIGN64(val) ALIGN((val), 64)
+
 #ifndef NO_SEGMENTED_MEMORY
 // convert a virtual address to physical.
 #define VIRTUAL_TO_PHYSICAL(addr)   ((uintptr_t)(addr) & 0x1FFFFFFF)
@@ -68,5 +93,7 @@
 #define PHYSICAL_TO_VIRTUAL(addr)   ((uintptr_t)(addr))
 #define VIRTUAL_TO_PHYSICAL2(addr)  ((void *)(addr))
 #endif
+
+#define FORCE_CRASH { *(vs8*)0 = 0; }
 
 #endif // MACROS_H

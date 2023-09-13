@@ -50,4 +50,8 @@
 #define BORDER_HEIGHT 0
 #endif
 
+#include "config/config_audio.h"
+
+#include "config/config_safeguards.h"
+
 #endif // CONFIG_H

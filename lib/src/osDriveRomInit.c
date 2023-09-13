@@ -5,7 +5,7 @@
 #include <sm64.h>
 
 extern OSPiHandle *__osPiTable;
-extern OSPiHandle DriveRomHandle;
+OSPiHandle DriveRomHandle;
 
 OSPiHandle *osDriveRomInit(void) { // Why is this compiled with -g???
     UNUSED s32 sp1c = 0;

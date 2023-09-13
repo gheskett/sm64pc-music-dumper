@@ -19,10 +19,12 @@
 #include "segments.h"
 #include "platform_info.h"
 
-// round up to the next multiple
-#define ALIGN4(val) (((val) + 0x3) & ~0x3)
-#define ALIGN8(val) (((val) + 0x7) & ~0x7)
-#define ALIGN16(val) (((val) + 0xF) & ~0xF)
+#ifdef GZIP
+#include <gzip.h>
+#endif
+#if defined(RNC1) || defined(RNC2)
+#include <rnc.h>
+#endif
 
 struct MainPoolState {
 #ifndef USE_SYSTEM_MALLOC

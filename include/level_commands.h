@@ -287,12 +287,30 @@
 #define GAMMA(enabled) \
     CMD_BBBB(0x35, 0x04, enabled, 0x00)
 
-#define SET_BACKGROUND_MUSIC(settingsPreset, seq) \
+#ifdef BETTER_REVERB
+#define SET_BACKGROUND_MUSIC_WITH_REVERB(settingsPreset, seq, reverbPresetConsole, reverbPresetEmulator) \
     CMD_BBH(0x36, 0x08, settingsPreset), \
-    CMD_HH(seq, 0x0000)
+    CMD_BBH(reverbPresetConsole, reverbPresetEmulator, seq)
+
+#define SET_MENU_MUSIC_WITH_REVERB(seq, reverbPresetConsole, reverbPresetEmulator) \
+    CMD_BBH(0x37, 0x08, seq), \
+    CMD_BBH(reverbPresetConsole, reverbPresetEmulator, 0x0000)
+#else
+// Functionally identical to calling SET_BACKGROUND_MUSIC if BETTER_REVERB is disabled
+#define SET_BACKGROUND_MUSIC_WITH_REVERB(settingsPreset, seq, reverbPresetConsole, reverbPresetEmulator) \
+    CMD_BBH(0x36, 0x08, settingsPreset), \
+    CMD_HH(0x0000, seq)
+
+// Functionally identical to calling SET_MENU_MUSIC if BETTER_REVERB is disabled
+#define SET_MENU_MUSIC_WITH_REVERB(seq, reverbPresetConsole, reverbPresetEmulator) \
+    CMD_BBH(0x37, 0x04, seq)
+#endif
+
+#define SET_BACKGROUND_MUSIC(settingsPreset, seq) \
+    SET_BACKGROUND_MUSIC_WITH_REVERB(settingsPreset, seq, 0x00, 0x00)
 
 #define SET_MENU_MUSIC(seq) \
-    CMD_BBH(0x37, 0x04, seq)
+    SET_MENU_MUSIC_WITH_REVERB(seq, 0x00, 0x00)
 
 #define STOP_MUSIC(fadeOutTime) \
     CMD_BBH(0x38, 0x04, fadeOutTime)
@@ -314,5 +332,8 @@
 
 #define GET_OR_SET(op, var) \
     CMD_BBBB(0x3C, 0x04, op, var)
+
+#define SET_ECHO(console, emulator) \
+    CMD_BBBB(0x3D, 0x04, console, emulator)
 
 #endif // LEVEL_COMMANDS_H

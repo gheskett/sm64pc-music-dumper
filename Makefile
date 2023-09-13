@@ -557,8 +557,11 @@ endif
 ENDIAN_BITWIDTH       := $(BUILD_DIR)/endian-and-bitwidth
 EMULATOR = mupen64plus
 EMU_FLAGS = --noosd
-LOADER = loader64
-LOADER_FLAGS = -vwf
+ifneq (,$(call find-command,wslview))
+    LOADER = ./$(TOOLS_DIR)/UNFLoader.exe
+else
+    LOADER = ./$(TOOLS_DIR)/UNFLoader
+endif
 SHA1SUM = sha1sum
 PRINT = printf
 
@@ -605,8 +608,11 @@ distclean: clean
 test: $(ROM)
 	$(EMULATOR) $(EMU_FLAGS) $<
 
-load: $(ROM)
-	$(LOADER) $(LOADER_FLAGS) $<
+load: $(ROM) $(LOADER)
+	$(LOADER) -r $<
+
+unf: $(ROM) $(LOADER)
+	$(LOADER) -d -r $<
 
 libultra: $(BUILD_DIR)/libultra.a
 

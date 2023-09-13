@@ -4,6 +4,7 @@
 #include "data.h"
 #include "seqplayer.h"
 #include "synthesis.h"
+#include "engine/math_util.h"
 
 #ifdef VERSION_EU
 
@@ -16,11 +17,7 @@
 #define SAMPLES_TO_OVERPRODUCE 0x10
 #define EXTRA_BUFFERED_AI_SAMPLES_TARGET 0x40
 
-#ifdef VERSION_JP
-typedef u16 FadeT;
-#else
 typedef s32 FadeT;
-#endif
 
 extern volatile u8 gAudioResetStatus;
 extern u8 gAudioResetPresetIdToLoad;
@@ -31,7 +28,7 @@ void func_8031D690(s32 player, FadeT fadeInTime);
 void seq_player_fade_to_zero_volume(s32 player, FadeT fadeOutTime);
 void decrease_sample_dma_ttls(void);
 s32 audio_shut_down_and_reset_step(void);
-void func_802ad7ec(u32);
+void func_802ad7ec(u32 arg0);
 
 #ifdef TARGET_N64
 struct SPTask *create_next_audio_frame_task(void) {
@@ -91,12 +88,8 @@ struct SPTask *create_next_audio_frame_task(void) {
 
     gAiBufferLengths[index] = ((gAudioBufferParameters.samplesPerFrameTarget - samplesRemainingInAI +
          EXTRA_BUFFERED_AI_SAMPLES_TARGET) & ~0xf) + SAMPLES_TO_OVERPRODUCE;
-    if (gAiBufferLengths[index] < gAudioBufferParameters.minAiBufferLength) {
-        gAiBufferLengths[index] = gAudioBufferParameters.minAiBufferLength;
-    }
-    if (gAiBufferLengths[index] > gAudioBufferParameters.maxAiBufferLength) {
-        gAiBufferLengths[index] = gAudioBufferParameters.maxAiBufferLength;
-    }
+    gAiBufferLengths[index] = CLAMP(gAiBufferLengths[index], gAudioBufferParameters.minAiBufferLength,
+                                                             gAudioBufferParameters.maxAiBufferLength);
 
     if (osRecvMesg(OSMesgQueues[1], &sp2C, OS_MESG_NOBLOCK) != -1) {
         func_802ad7ec((u32) sp2C);
@@ -172,18 +165,17 @@ void eu_process_audio_cmd(struct EuAudioCmd *cmd) {
             break;
 
         case 0x83:
-            if (gSequencePlayers[cmd->u.s.arg1].enabled != FALSE) {
+            if (gSequencePlayers[cmd->u.s.arg1].enabled) {
                 if (cmd->u2.as_s32 == 0) {
                     sequence_player_disable(&gSequencePlayers[cmd->u.s.arg1]);
-                }
-                else {
+                } else {
                     seq_player_fade_to_zero_volume(cmd->u.s.arg1, cmd->u2.as_s32);
                 }
             }
             break;
 
         case 0xf0:
-            gSoundMode = cmd->u2.as_s32;
+            // gSoundMode = cmd->u2.as_s32; // Commenting this out, as the way to reset this has been removed.
             break;
 
         case 0xf1:
@@ -201,8 +193,6 @@ void eu_process_audio_cmd(struct EuAudioCmd *cmd) {
             break;
     }
 }
-
-const char undefportcmd[] = "Undefined Port Command %d\n";
 
 extern OSMesgQueue *OSMesgQueues[];
 extern u8 D_EU_80302010;
@@ -283,8 +273,7 @@ void func_802ad7ec(u32 arg0) {
             seqPlayer = &gSequencePlayers[cmd->u.s.arg1];
             if ((cmd->u.s.op & 0x80) != 0) {
                 eu_process_audio_cmd(cmd);
-            }
-            else if ((cmd->u.s.op & 0x40) != 0) {
+            } else if ((cmd->u.s.op & 0x40) != 0) {
                 switch (cmd->u.s.op) {
                     case 0x41:
                         seqPlayer->fadeVolumeScale = cmd->u2.as_f32;
@@ -303,8 +292,7 @@ void func_802ad7ec(u32 arg0) {
                         seqPlayer->seqVariationEu[cmd->u.s.arg3] = cmd->u2.as_s8;
                         break;
                 }
-            }
-            else if (seqPlayer->enabled != FALSE && cmd->u.s.arg2 < 0x10) {
+            } else if (seqPlayer->enabled != FALSE && cmd->u.s.arg2 < 0x10) {
                 chan = seqPlayer->channels[cmd->u.s.arg2];
                 if (IS_SEQUENCE_CHANNEL_VALID(chan)) {
                     switch (cmd->u.s.op) {

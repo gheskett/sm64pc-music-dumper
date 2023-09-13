@@ -2,15 +2,10 @@
 
 #include "buffers.h"
 #include "config.h"
+#include "audio/data.h"
 
 ALIGNED8 u8 gDecompressionHeap[0xD000];
-#if defined(VERSION_EU)
-ALIGNED16 u8 gAudioHeap[DOUBLE_SIZE_ON_64_BIT(0x31200) - 0x3800];
-#elif defined(VERSION_SH)
-ALIGNED16 u8 gAudioHeap[DOUBLE_SIZE_ON_64_BIT(0x31200) - 0x4800];
-#else
-ALIGNED16 u8 gAudioHeap[DOUBLE_SIZE_ON_64_BIT(0x31200)];
-#endif
+ALIGNED16 u8 gAudioHeap[DOUBLE_SIZE_ON_64_BIT(AUDIO_HEAP_SIZE)];
 
 ALIGNED8 u8 gIdleThreadStack[0x800];
 ALIGNED8 u8 gThread3Stack[0x2000];
