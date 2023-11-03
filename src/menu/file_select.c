@@ -3,6 +3,7 @@
 
 #include "seq_ids.h"
 #include "audio/external.h"
+#include "audio/load.h"
 #include "behavior_data.h"
 #include "dialog_ids.h"
 #include "engine/behavior_script.h"
@@ -1163,8 +1164,13 @@ void check_sound_mode_menu_clicked_buttons(struct Object *soundModeButton) {
                     }
                 }
                 else if (buttonID == MENU_BUTTON_PLAYSTOP) {
-                    fadeout_background_music(get_current_background_music(), 80);
-                    reset_music_id();
+                    if (!(gSequencePlayers[SEQ_PLAYER_LEVEL].enabled || sAudioSwapTimer >= 0)) {
+                        play_seq_from_test(0);
+                    }
+                    else {
+                        fadeout_background_music(get_current_background_music(), 80);
+                        reset_music_id();
+                    }
                 }
 #ifdef VERSION_EU
                 // If language mode button clicked, select it and change language
@@ -2631,7 +2637,7 @@ void print_sound_mode_menu_strings(void) {
     for (mode = 0; mode < 3; ++mode) {
         modeTmp = mode;
 
-        if (modeTmp == 2/* && TODO: music playing*/)
+        if (modeTmp == 2 && (gSequencePlayers[SEQ_PLAYER_LEVEL].enabled || sAudioSwapTimer >= 0))
             ++modeTmp;
 
         if (modeTmp == 2) {
@@ -2960,7 +2966,9 @@ Gfx *geo_file_select_strings_and_menu_cursor(s32 callContext, UNUSED struct Grap
     if (sAudioSwapTimer >= 0 && sAudioSwapTimer < 10) {
         sAudioSwapTimer++;
         if (sAudioSwapTimer == 10) {
-            set_background_music(0, seqNum, 0);
+            if (seqNum > 0) {
+                set_background_music(0, seqNum, 0);
+            }
             sAudioSwapTimer = -1;
         }
     }
