@@ -1,27 +1,30 @@
 # Super Mario 64 Port
 
-## AUDIO DUMP PORT STUFFS 
+## MUSIC DUMP PORT STUFFS 
 
 ### Compilation
 
-- To compile Windows executable, use MSYS2 MinGW 64-bit as a terminal.
+- To compile executable for Windows, use MSYS2 MinGW 64-bit as a terminal.
 - Navigate to repo: `cd [Drive Letter]:/[Path]`
 - Compile: `make -j`
 
+For more details on compilation and dependency prerequisites, please read the instructions lower in the README.
+
 ### Audio Dumping
 
+- Visit the Sound menu in the file select to access a custom music player implemented for playback convenience.
 - Press the L button to start/stop an audio dump (Mapped to Q on keyboard).
 - The audio will be placed in the same folder as the call to run the executable.
 - An audio dump will automatically be closed after file size exceeds 512MB.
 - Any new audio dumps will not overwrite the old ones.
-- Audio dumps with the PC port don't quite produce a 1:1 output with Jabo Direct 1.7 using Project64, but playback of the dumps are more consistent and may sound subjectively better/crispier quality-wise
 
 ### Game Speed / Framerate
 
 - Game speed / Framerate should have no effect on audio dump, especially if it's run at or above 30FPS. Any gameplay stuttering will not ruin the dump.
 - In the NVIDIA Control Panel, set Vertical sync and Max Frame Rate to Off for the executable.
 - Use the speedup key (Tab) to speed up gameplay to about as fast as your computer can handle.
-- To cap the speedup, change the max_speedup_framerate field in the sm64config.txt to a positive integer of your choice.
+- To cap the speedup, change the `max_speedup_framerate` field in the `sm64config.txt` to a positive integer of your choice.
+
 ## About
 
 - This repo contains a full decompilation of Super Mario 64 (J), (U), (E), and (SH).
@@ -30,6 +33,40 @@
 
 This repo does not include all assets necessary for compiling the game.
 A prior copy of the game is required to extract the assets.
+
+## Default Controls
+
+```
+A: M
+B: N
+Z: Space
+
+Start: Enter
+L: Q
+R: E
+
+Analog Up: W
+Analog Left: A
+Analog Down: S
+Analog Right: D
+
+C-Up: ↑
+C-Left: ←
+C-Down: ↓
+C-Right: →
+
+D-Pad Up: NumPad 8
+D-Pad Left: NumPad 4
+D-Pad Down: NumPad 2
+D-Pad Right: NumPad 6
+
+Speedup Key: Tab
+```
+
+These controls can be changed in the `sm64config.txt` using scancode values.
+It is on the todo list to write a better native control mapping system eventually.
+
+## Building native executables
 
 ## Quick Start (for Ubuntu)
 
