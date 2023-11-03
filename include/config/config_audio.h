@@ -49,3 +49,4 @@
  * Reverb presets can be configured in audio/data.c to meet desired aesthetic/performance needs. More detailed usage info can also be found on the HackerSM64 Wiki page.
  */
 #define BETTER_REVERB
+#define BETTER_REVERB_SOUND_PLAYER_PRESET 0

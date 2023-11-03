@@ -4,6 +4,7 @@
 #include "seq_ids.h"
 #include "audio/external.h"
 #include "audio/load.h"
+#include "audio/synthesis.h"
 #include "behavior_data.h"
 #include "dialog_ids.h"
 #include "engine/behavior_script.h"
@@ -2967,6 +2968,9 @@ Gfx *geo_file_select_strings_and_menu_cursor(s32 callContext, UNUSED struct Grap
         sAudioSwapTimer++;
         if (sAudioSwapTimer == 10) {
             if (seqNum > 0) {
+#if defined(BETTER_REVERB) && defined(BETTER_REVERB_PREVIEW_PRESET)
+                gBetterReverbPresetValue = BETTER_REVERB_PREVIEW_PRESET;
+#endif
                 set_background_music(0, seqNum, 0);
             }
             sAudioSwapTimer = -1;
