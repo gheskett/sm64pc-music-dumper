@@ -8,6 +8,8 @@
 
 #include "audio_api.h"
 
+#include "src/audio/internal.h"
+
 static SDL_AudioDeviceID dev;
 
 static bool audio_sdl_init(void) {
@@ -17,7 +19,7 @@ static bool audio_sdl_init(void) {
     }
     SDL_AudioSpec want, have;
     SDL_zero(want);
-    want.freq = 32000;
+    want.freq = FINAL_SAMPLE_RATE;
     want.format = AUDIO_S16;
     want.channels = 2;
     want.samples = 512;

@@ -16,18 +16,18 @@
 #include "../pc/mixer.h"
 #endif
 
-#define DMEM_ADDR_TEMP 0x0
-#define DMEM_ADDR_RESAMPLED 0x20
-#define DMEM_ADDR_RESAMPLED2 0x160
-#define DMEM_ADDR_UNCOMPRESSED_NOTE 0x180
-#define DMEM_ADDR_NOTE_PAN_TEMP 0x200
-#define DMEM_ADDR_STEREO_STRONG_TEMP_DRY 0x200
-#define DMEM_ADDR_STEREO_STRONG_TEMP_WET 0x340
-#define DMEM_ADDR_COMPRESSED_ADPCM_DATA 0x3f0
-#define DMEM_ADDR_LEFT_CH 0x4c0
-#define DMEM_ADDR_RIGHT_CH 0x600
-#define DMEM_ADDR_WET_LEFT_CH 0x740
-#define DMEM_ADDR_WET_RIGHT_CH 0x880
+#define DMEM_ADDR_TEMP                   0x0
+#define DMEM_ADDR_RESAMPLED              FLOOR16((s32) (0x20 * SAMPLE_RATE_DIFF))
+#define DMEM_ADDR_RESAMPLED2             (DMEM_ADDR_RESAMPLED + DEFAULT_LEN_1CH)
+#define DMEM_ADDR_UNCOMPRESSED_NOTE      (DMEM_ADDR_RESAMPLED2 + DMEM_ADDR_RESAMPLED)
+#define DMEM_ADDR_NOTE_PAN_TEMP          FLOOR16((s32) (0x280 * SAMPLE_RATE_DIFF))
+#define DMEM_ADDR_STEREO_STRONG_TEMP_DRY FLOOR16((s32) (0x280 * SAMPLE_RATE_DIFF))
+#define DMEM_ADDR_STEREO_STRONG_TEMP_WET (DMEM_ADDR_STEREO_STRONG_TEMP_DRY + DEFAULT_LEN_1CH)
+#define DMEM_ADDR_COMPRESSED_ADPCM_DATA  FLOOR16((s32) (0x500 * SAMPLE_RATE_DIFF))
+#define DMEM_ADDR_LEFT_CH                FLOOR16((s32) (0x640 * SAMPLE_RATE_DIFF))
+#define DMEM_ADDR_RIGHT_CH               (DMEM_ADDR_LEFT_CH + DEFAULT_LEN_1CH)
+#define DMEM_ADDR_WET_LEFT_CH            (DMEM_ADDR_RIGHT_CH + DEFAULT_LEN_1CH)
+#define DMEM_ADDR_WET_RIGHT_CH           (DMEM_ADDR_WET_LEFT_CH + DEFAULT_LEN_1CH)
 
 #define aSetLoadBufferPair(pkt, c, off)                                                                \
     aSetBuffer(pkt, 0, c + DMEM_ADDR_WET_LEFT_CH, 0, DEFAULT_LEN_1CH - c);                             \
@@ -213,8 +213,8 @@ void set_better_reverb_buffers(u32 *inputDelaysL, u32 *inputDelaysR) {
     // NOTE: Using filterCount over NUM_ALLPASS will report less memory usage with fewer filters, but poses an additional
     // risk to anybody testing on console with performance compromises, as emulator can be easily overlooked.
     for (i = 0; i < filterCount; ++i) {
-        betterReverbDelays[SYNTH_CHANNEL_LEFT][i] = (s32) (inputDelaysL[i] / gReverbDownsampleRate);
-        betterReverbDelays[SYNTH_CHANNEL_RIGHT][i] = (s32) (inputDelaysR[i] / gReverbDownsampleRate);
+        betterReverbDelays[SYNTH_CHANNEL_LEFT][i] = (s32) ((f32) inputDelaysL[i] * SAMPLE_RATE_DIFF / (f32) gReverbDownsampleRate + 0.5f);
+        betterReverbDelays[SYNTH_CHANNEL_RIGHT][i] = (s32) ((f32) inputDelaysR[i] * SAMPLE_RATE_DIFF / (f32) gReverbDownsampleRate + 0.5f);
         delayBufs[SYNTH_CHANNEL_LEFT][i] = soundAlloc(&gBetterReverbPool, betterReverbDelays[SYNTH_CHANNEL_LEFT][i] * sizeof(s16));
         bufOffset += betterReverbDelays[SYNTH_CHANNEL_LEFT][i];
         delayBufs[SYNTH_CHANNEL_RIGHT][i] = soundAlloc(&gBetterReverbPool, betterReverbDelays[SYNTH_CHANNEL_RIGHT][i] * sizeof(s16));

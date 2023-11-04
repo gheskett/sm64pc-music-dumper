@@ -4,12 +4,11 @@
 #include "internal.h"
 
 #ifdef VERSION_SH
-#define DEFAULT_LEN_1CH 0x180
-#define DEFAULT_LEN_2CH 0x300
+#define DEFAULT_LEN_1CH FLOOR32((s32) (0x180 * FINAL_SAMPLE_RATE / 32000))
 #else
-#define DEFAULT_LEN_1CH 0x140
-#define DEFAULT_LEN_2CH 0x280
+#define DEFAULT_LEN_1CH FLOOR32((s32) (0x140 * FINAL_SAMPLE_RATE / 32000))
 #endif
+#define DEFAULT_LEN_2CH (2 * DEFAULT_LEN_1CH)
 
 #if defined(VERSION_EU) || defined(VERSION_SH)
 #define MAX_UPDATES_PER_FRAME 5
@@ -25,7 +24,7 @@ enum ChannelIndexes {
 
 #ifdef BETTER_REVERB
 
-#define REVERB_WINDOW_SIZE_MAX 0x2000
+#define REVERB_WINDOW_SIZE_MAX ALIGN16(0x2000 * FINAL_SAMPLE_RATE / 32000)
 
 
 /* ------------ BETTER REVERB GENERAL PARAMETERS ------------ */
@@ -37,7 +36,7 @@ enum ChannelIndexes {
 // The default value can be increased or decreased in conjunction with the values in delaysL/R.
 // This can be significantly decreased if a downsample rate of 1 is not being used or if filter count is less than NUM_ALLPASS,
 // as this default is configured to handle the emulator RCVI settings.
-#define BETTER_REVERB_SIZE ALIGN16(0xEDE0 + BETTER_REVERB_PTR_SIZE)
+#define BETTER_REVERB_SIZE ALIGN16(0x80000ULL * FINAL_SAMPLE_RATE / 32000ULL + BETTER_REVERB_PTR_SIZE)
 
 
 /* ------ BETTER REVERB LIGHTWEIGHT PARAMETER OVERRIDES ------ */
@@ -82,9 +81,9 @@ STATIC_ASSERT(BETTER_REVERB_FILTER_COUNT_LIGHT <= NUM_ALLPASS, "BETTER_REVERB_FI
 #define BETTER_REVERB_SIZE 0
 
 #ifdef VERSION_EU
-#define REVERB_WINDOW_SIZE_MAX 0x1000
+#define REVERB_WINDOW_SIZE_MAX ALIGN16((s32) (0x1000 * FINAL_SAMPLE_RATE / 32000))
 #else
-#define REVERB_WINDOW_SIZE_MAX 0x1000
+#define REVERB_WINDOW_SIZE_MAX ALIGN16((s32) (0x1000 * FINAL_SAMPLE_RATE / 32000))
 #endif
 
 #endif
@@ -94,14 +93,14 @@ STATIC_ASSERT(BETTER_REVERB_FILTER_COUNT_LIGHT <= NUM_ALLPASS, "BETTER_REVERB_FI
 ( \
     (REVERB_WINDOW_SIZE_MAX * sizeof(s16) * 2) \
     + (4 * (16 * sizeof(s16))) \
-    + (4 /* gAudioUpdatesPerFrame */ * (2 * DEFAULT_LEN_2CH)) \
+    + (MAX_UPDATES_PER_FRAME * (2 * DEFAULT_LEN_2CH)) \
 )
 #else
 #define REVERB_WINDOW_HEAP_SIZE \
 ( \
     ((REVERB_WINDOW_SIZE_MAX * sizeof(s16) * 2) \
     + (4 * (16 * sizeof(s16))) \
-    + (4 /* gAudioUpdatesPerFrame */ * (2 * DEFAULT_LEN_2CH))) \
+    + (MAX_UPDATES_PER_FRAME * (2 * DEFAULT_LEN_2CH))) \
     * 4 /* gNumSynthesisReverbs */ \
 )
 #endif

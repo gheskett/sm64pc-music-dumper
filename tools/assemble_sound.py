@@ -16,6 +16,8 @@ DUMP_INDIVIDUAL_BINS = False
 ENDIAN_MARKER = ">"
 WORD_BYTES = 4
 
+FINAL_SAMPLE_RATE = 48000
+
 orderedJsonDecoder = JSONDecoder(object_pairs_hook=OrderedDict)
 
 
@@ -606,10 +608,10 @@ def serialize_ctl(bank, base_ser, is_shindou):
             0 if sound["sample"] is None else sample_name_to_addr[sound["sample"]]
         )
         if "tuning" in sound:
-            tuning = sound["tuning"]
+            tuning = sound["tuning"] * (32000 / FINAL_SAMPLE_RATE)
         else:
             aifc = bank.sample_bank.name_to_entry[sound["sample"]]
-            tuning = aifc.sample_rate / 32000
+            tuning = aifc.sample_rate / FINAL_SAMPLE_RATE
         ser.add(pack("PfX", sample_addr, tuning))
 
     no_sound = {"sample": None, "tuning": 0.0}

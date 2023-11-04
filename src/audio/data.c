@@ -37,7 +37,7 @@ struct ReverbSettingsEU sReverbSettings[8] = {
 */
 
 struct AudioSessionSettingsEU gAudioSessionPresets[] = {
-    { /*1*/ 32000,/*2*/ 1,/*3*/ MAX_SIMULTANEOUS_NOTES,/*4*/ 1,/*5*/ 0, &sReverbSettings[0],/*6*/ 0x7FFF,/*7*/ 0,/*8*/ PERSISTENT_SEQ_MEM,/*9*/ PERSISTENT_BANK_MEM,/*10*/ TEMPORARY_SEQ_MEM,/*11*/ TEMPORARY_BANK_MEM },
+    { /*1*/ FINAL_SAMPLE_RATE,/*2*/ 1,/*3*/ MAX_SIMULTANEOUS_NOTES,/*4*/ 1,/*5*/ 0, &sReverbSettings[0],/*6*/ 0x7FFF,/*7*/ 0,/*8*/ PERSISTENT_SEQ_MEM,/*9*/ PERSISTENT_BANK_MEM,/*10*/ TEMPORARY_SEQ_MEM,/*11*/ TEMPORARY_BANK_MEM },
 };
 #endif
 
@@ -221,7 +221,7 @@ struct ReverbSettingsUS gReverbSettings[18] = {
     { 1, 0x0800, 0x2FFF },
 };
 
-struct AudioSessionSettings gAudioSessionSettings = { 32000, MAX_SIMULTANEOUS_NOTES, 0x7FFF, PERSISTENT_SEQ_MEM, PERSISTENT_BANK_MEM, TEMPORARY_SEQ_MEM, TEMPORARY_BANK_MEM };
+struct AudioSessionSettings gAudioSessionSettings = { FINAL_SAMPLE_RATE, MAX_SIMULTANEOUS_NOTES, 0x7FFF, PERSISTENT_SEQ_MEM, PERSISTENT_BANK_MEM, TEMPORARY_SEQ_MEM, TEMPORARY_BANK_MEM };
 #endif
 
 // gAudioCosineTable[k] = round((2**15 - 1) * cos(pi/2 * k / 127)). Unused.

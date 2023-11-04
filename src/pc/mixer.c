@@ -5,6 +5,8 @@
 
 #include "mixer.h"
 
+#include "src/audio/internal.h"
+
 #ifdef __SSE4_1__
 #include <immintrin.h>
 #define HAS_SSE41 1
@@ -31,11 +33,11 @@
 #define ROUND_DOWN_16(v) ((v) & ~0xf)
 
 #ifdef NEW_AUDIO_UCODE
-#define BUF_SIZE 2880
-#define BUF_U8(a) (rspa.buf.as_u8 + ((a) - 0x450))
-#define BUF_S16(a) (rspa.buf.as_s16 + ((a) - 0x450) / sizeof(int16_t))
+#define BUF_SIZE ROUND_UP_32(0x1000 * FINAL_SAMPLE_RATE / 32000)
+#define BUF_U8(a) (rspa.buf.as_u8 + ((a)))
+#define BUF_S16(a) (rspa.buf.as_s16 + ((a)) / sizeof(int16_t))
 #else
-#define BUF_SIZE 2512
+#define BUF_SIZE ROUND_UP_32(0x1000 * FINAL_SAMPLE_RATE / 32000)
 #define BUF_U8(a) (rspa.buf.as_u8 + (a))
 #define BUF_S16(a) (rspa.buf.as_s16 + (a) / sizeof(int16_t))
 #endif

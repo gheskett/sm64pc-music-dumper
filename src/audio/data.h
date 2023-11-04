@@ -14,11 +14,11 @@
 #define NUMAIBUFFERS 3
 
 #if defined(VERSION_EU)
-#define DMA_BUF_SIZE_0 0x400
-#define DMA_BUF_SIZE_1 0x200
+#define DMA_BUF_SIZE_0 ALIGN16((s32) (0x400 * SAMPLE_RATE_DIFF))
+#define DMA_BUF_SIZE_1 ALIGN16((s32) (0x200 * SAMPLE_RATE_DIFF))
 #else
-#define DMA_BUF_SIZE_0 (144 * 9)
-#define DMA_BUF_SIZE_1 (160 * 9)
+#define DMA_BUF_SIZE_0 (ALIGN16((s32) (144 * FINAL_SAMPLE_RATE / 32000)) * 9)
+#define DMA_BUF_SIZE_1 (ALIGN16((s32) (160 * FINAL_SAMPLE_RATE / 32000)) * 9)
 #endif
 
 #ifdef EXPAND_AUDIO_HEAP
@@ -145,11 +145,11 @@ extern s32 gRefreshRate;
 extern s16 *gAiBuffers[NUMAIBUFFERS];
 extern s16 gAiBufferLengths[NUMAIBUFFERS];
 #if defined(VERSION_SH)
-#define AIBUFFER_LEN 0xb00
+#define AIBUFFER_LEN ALIGN16((s32) (0xb00 * SAMPLE_RATE_DIFF))
 #elif defined(VERSION_EU)
-#define AIBUFFER_LEN (0xa0 * 17)
+#define AIBUFFER_LEN (ALIGN16((s32) (0xa0 * SAMPLE_RATE_DIFF)) * 17)
 #else
-#define AIBUFFER_LEN (0xa0 * 16)
+#define AIBUFFER_LEN (ALIGN16((s32) (0xa0 * SAMPLE_RATE_DIFF)) * 16)
 #endif
 
 extern u32 gAudioRandom;
@@ -157,22 +157,22 @@ extern u32 gAudioRandom;
 #if defined(VERSION_US) || defined(VERSION_JP)
 #define NOTES_BUFFER_SIZE \
 ( \
-    MAX_SIMULTANEOUS_NOTES * ((4 /* updatesPerFrame */ * 20 * 2 * sizeof(u64)) \
+    MAX_SIMULTANEOUS_NOTES * ((MAX_UPDATES_PER_FRAME * 20 * 2 * sizeof(u64)) \
     + ALIGN16(sizeof(struct Note)) \
     + (DMA_BUF_SIZE_0 * 3) \
-    + DMA_BUF_SIZE_1 \
+    + (DMA_BUF_SIZE_1) \
     + ALIGN16(sizeof(struct NoteSynthesisBuffers))) \
     + (320 * 2 * sizeof(u64)) /* gMaxAudioCmds */ \
 )
 #else // Probably SH incompatible but that's an entirely different headache to save at this point tbh
 #define NOTES_BUFFER_SIZE \
 ( \
-    MAX_SIMULTANEOUS_NOTES * ((4 /* updatesPerFrame */ * 0x10 * 2 * sizeof(u64)) \
+    MAX_SIMULTANEOUS_NOTES * ((MAX_UPDATES_PER_FRAME * 0x10 * 2 * sizeof(u64)) \
     + ALIGN16(sizeof(struct Note)) \
     + (DMA_BUF_SIZE_0 * 3 * 1 /* presetUnk4 */) \
     + (DMA_BUF_SIZE_1) \
     + ALIGN16(sizeof(struct NoteSynthesisBuffers)) \
-    + ALIGN16(4 /* updatesPerFrame */ * sizeof(struct NoteSubEu))) \
+    + ALIGN16(MAX_UPDATES_PER_FRAME * sizeof(struct NoteSubEu))) \
     + ((0x300 + (4 /* numReverbs */ * 0x20)) * 2 * sizeof(u64)) /* gMaxAudioCmds */ \
 )
 #endif
@@ -209,7 +209,7 @@ extern OSMesgQueue *D_SH_80350FA8;
 #endif
 
 // TODO: needs validation once EU can compile. EU is very likely incorrect!
-#define AUDIO_HEAP_SIZE (SEQ_BANK_MEM + AUDIO_INIT_POOL_SIZE + NOTES_BUFFER_SIZE + BETTER_REVERB_SIZE + REVERB_WINDOW_HEAP_SIZE)
+#define AUDIO_HEAP_SIZE (SEQ_BANK_MEM + AUDIO_INIT_POOL_SIZE + NOTES_BUFFER_SIZE + BETTER_REVERB_SIZE + REVERB_WINDOW_HEAP_SIZE + 0x80000)
 
 #ifdef VERSION_SH
 extern u32 D_SH_80315EF0;

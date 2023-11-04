@@ -1067,9 +1067,9 @@ void check_erase_menu_clicked_buttons(struct Object *eraseButton) {
 #undef MAIN_RETURN_TIMER
 
 void play_seq_from_test(s16 seqidOffset) {
-    s16 tmpSeqNum = ((s16) seqNum + seqidOffset) % SEQ_COUNT;
+    s16 tmpSeqNum = ((s16) seqNum + seqidOffset) % gSequenceCount;
     if (tmpSeqNum < 0)
-        tmpSeqNum += SEQ_COUNT;
+        tmpSeqNum += gSequenceCount;
 
     seqNum = (u8) tmpSeqNum;
 

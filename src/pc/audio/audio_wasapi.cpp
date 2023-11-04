@@ -11,6 +11,8 @@
 
 #include "audio_api.h"
 
+#include "src/audio/internal.h"
+
 // These constants are currently missing from the MinGW headers.
 #ifndef AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
 # define AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM  0x80000000
@@ -123,8 +125,8 @@ static bool audio_wasapi_setup_stream(void) {
         WAVEFORMATEX desired;
         desired.wFormatTag = WAVE_FORMAT_PCM;
         desired.nChannels = 2;
-        desired.nSamplesPerSec = 32000;
-        desired.nAvgBytesPerSec = 32000 * 2 * 2;
+        desired.nSamplesPerSec = FINAL_SAMPLE_RATE;
+        desired.nAvgBytesPerSec = FINAL_SAMPLE_RATE * 2 * 2;
         desired.nBlockAlign = 4;
         desired.wBitsPerSample = 16;
         desired.cbSize = 0;

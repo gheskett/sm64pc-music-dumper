@@ -1046,7 +1046,7 @@ void init_reverb_us(s32 presetId) {
     s16 *mem;
     s32 i;
 
-    s32 reverbWindowSize = gReverbSettings[presetId].windowSize;
+    s32 reverbWindowSize = ALIGN16((s32) (gReverbSettings[presetId].windowSize * SAMPLE_RATE_DIFF));
     gReverbDownsampleRate = gReverbSettings[presetId].downsampleRate;
 #ifdef BETTER_REVERB
     struct BetterReverbSettings *betterReverbPreset = &gBetterReverbSettings[gBetterReverbPresetValue];
@@ -1069,7 +1069,11 @@ void init_reverb_us(s32 presetId) {
     betterReverbDownsampleRate = betterReverbPreset->downsampleRate;
     monoReverb = betterReverbPreset->isMono;
     reverbFilterCount = betterReverbPreset->filterCount;
-    betterReverbWindowsSize = betterReverbPreset->windowSize;
+    if (betterReverbPreset->windowSize <= 0) {
+        betterReverbWindowsSize = betterReverbPreset->windowSize;
+    } else {
+        betterReverbWindowsSize = ALIGN16((s32) (betterReverbPreset->windowSize * SAMPLE_RATE_DIFF));
+    }
     betterReverbRevIndex = betterReverbPreset->reverbIndex;
     betterReverbGainIndex = betterReverbPreset->gainIndex;
     gReverbMults[SYNTH_CHANNEL_LEFT] = betterReverbPreset->reverbMultsL;
@@ -1309,7 +1313,7 @@ void audio_reset_session(void) {
 #endif
     gAudioBufferParameters.samplesPerUpdateMax = gAudioBufferParameters.samplesPerUpdate + 8;
     gAudioBufferParameters.samplesPerUpdateMin = gAudioBufferParameters.samplesPerUpdate - 8;
-    gAudioBufferParameters.resampleRate = 32000.0f / FLOAT_CAST(gAudioBufferParameters.frequency);
+    gAudioBufferParameters.resampleRate = FINAL_SAMPLE_RATE / FLOAT_CAST(gAudioBufferParameters.frequency);
 #ifdef VERSION_SH
     gAudioBufferParameters.unkUpdatesPerFrameScaled = (1.0f / 256.0f) / gAudioBufferParameters.updatesPerFrame;
 #else
@@ -1344,8 +1348,7 @@ void audio_reset_session(void) {
 
     gVolume = gAudioSessionSettings.volume;
     gMinAiBufferLength = gSamplesPerFrameTarget - 0x10;
-    gAudioUpdatesPerFrame = updatesPerFrame = gSamplesPerFrameTarget / 160 + 1;
-
+    gAudioUpdatesPerFrame = updatesPerFrame = gSamplesPerFrameTarget / ALIGN16((s32) (160 * SAMPLE_RATE_DIFF)) + 1;
 
     gMaxSimultaneousNotes = MAX_SIMULTANEOUS_NOTES;
 

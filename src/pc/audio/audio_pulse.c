@@ -9,6 +9,8 @@
 #include "macros.h"
 #include "audio_api.h"
 
+#include "src/audio/internal.h"
+
 static struct {
     pa_mainloop *mainloop;
     pa_context *context;
@@ -77,7 +79,7 @@ static bool audio_pulse_init(void) {
     // Create stream
     pa_sample_spec ss;
     ss.format = PA_SAMPLE_S16LE;
-    ss.rate = 32000;
+    ss.rate = FINAL_SAMPLE_RATE;
     ss.channels = 2;
     
     pa_buffer_attr attr;

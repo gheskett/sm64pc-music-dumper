@@ -17,6 +17,7 @@ enum Preloads {
 
 extern struct Note *gNotes;
 extern u8 sAudioIsInitialized;
+extern u16 gSequenceCount;
 
 // Music in SM64 is played using 3 players:
 // gSequencePlayers[0] is level background music

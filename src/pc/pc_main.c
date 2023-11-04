@@ -20,6 +20,7 @@
 #include "game/game_init.h"
 #include "game/print.h"
 #include "audio/external.h"
+#include "audio/internal.h"
 
 #include "gfx/gfx_pc.h"
 #include "gfx/gfx_opengl.h"
@@ -92,12 +93,11 @@ void exec_display_list(struct SPTask *spTask) {
 #define printf
 
 #ifdef VERSION_EU
-#define SAMPLES_HIGH 656
-#define SAMPLES_LOW 640
+#define SAMPLES_HIGH FLOOR16(FINAL_SAMPLE_RATE / 50)
 #else
-#define SAMPLES_HIGH 544
-#define SAMPLES_LOW 528
+#define SAMPLES_HIGH FLOOR16(FINAL_SAMPLE_RATE / 60)
 #endif
+#define SAMPLES_LOW (SAMPLES_HIGH - 16)
 
 void print_debug() {
     if (dumpStrFrameCounter <= 0)
@@ -138,15 +138,19 @@ u8 open_audio_file(char *buffer) {
     return FALSE;
 }
 
+#define SR FINAL_SAMPLE_RATE
+#define BR ((SR * 16 * 2) / 8)
 u8 open_audio_dump() {
     char nameBuffer[128];
     // RIFF WAV Header Data
-    u8 buff[0x2C] = {0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,
-    0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20,
-    0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
-    0x00, 0x7D, 0x00, 0x00, 0x00, 0xF4, 0x01, 0x00,
-    0x04, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61,
-    0x00, 0x00, 0x00, 0x00};
+    u8 buff[0x2C] = {
+        0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,
+        0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20,
+        0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
+        (SR & 0xFF), ((SR >> 8) & 0xFF), ((SR >> 16) & 0xFF), ((SR >> 24) & 0xFF), (BR & 0xFF), ((BR >> 8) & 0xFF), ((BR >> 16) & 0xFF), ((BR >> 24) & 0xFF),
+        0x04, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61,
+        0x00, 0x00, 0x00, 0x00
+    };
 
     if (audioDump)
         return FALSE;
@@ -257,6 +261,26 @@ void calculate_wait_next_frame(void) {
         nextFrame.tv_sec = currentTime.tv_sec;
         countToThree = 0;
     }
+}
+
+static s32 calculate_next_audio_buffer_size(void) {
+    s32 ret;
+    s32 samplesToProcessInSecond = ceil((FINAL_SAMPLE_RATE * (audioFrame+1)) / 60.0);
+
+    if (samplesToProcessInSecond - samplesProcessed > SAMPLES_LOW) {
+        ret = SAMPLES_HIGH;
+    } else {
+        ret = SAMPLES_LOW;
+    }
+
+    samplesProcessed += ret;
+
+    if (++audioFrame >= 60) {
+        audioFrame -= 60;
+        samplesProcessed -= FINAL_SAMPLE_RATE;
+    }
+
+    return ret;
 }
 
 void produce_one_frame(void) {

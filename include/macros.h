@@ -71,12 +71,23 @@
 #define ALIGN(VAL_, ALIGNMENT_) (((VAL_) + ((ALIGNMENT_) - 1)) & ~((ALIGNMENT_) - 1))
 #endif
 
+#ifndef FLOOR_ALIGN
+#define FLOOR_ALIGN(VAL_, ALIGNMENT_) (((VAL_) + ((ALIGNMENT_))) & ~((ALIGNMENT_) - 1))
+#endif
+
 // Round up to the next multiple.
 #define ALIGN4(val)  ALIGN((val),  4)
 #define ALIGN8(val)  ALIGN((val),  8)
 #define ALIGN16(val) ALIGN((val), 16)
 #define ALIGN32(val) ALIGN((val), 32)
 #define ALIGN64(val) ALIGN((val), 64)
+
+// Same thing as ALIGN, only add to the value if it isn't being rounded up by default
+#define FLOOR4(val)  FLOOR_ALIGN((val),  4)
+#define FLOOR8(val)  FLOOR_ALIGN((val),  8)
+#define FLOOR16(val) FLOOR_ALIGN((val), 16)
+#define FLOOR32(val) FLOOR_ALIGN((val), 32)
+#define FLOOR64(val) FLOOR_ALIGN((val), 64)
 
 #ifndef NO_SEGMENTED_MEMORY
 // convert a virtual address to physical.
