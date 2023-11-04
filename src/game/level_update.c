@@ -1169,6 +1169,9 @@ s32 init_level(void) {
 
     sTimerRunning = FALSE;
 
+    gTempoModifier = 1.0f;
+    gPitchModifier = 1.0f;
+
     if (sWarpDest.type != WARP_TYPE_NOT_WARPING) {
         if (sWarpDest.nodeId >= WARP_NODE_CREDITS_MIN) {
             warp_credits();

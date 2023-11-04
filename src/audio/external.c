@@ -69,6 +69,9 @@ s32 gAudioErrorFlags = 0;
 #endif
 s32 sGameLoopTicked = 0;
 
+f32 gPitchModifier = 1.0f;
+f32 gTempoModifier = 1.0f;
+
 s8 isInSoundSelect = FALSE;
 
 // Dialog sounds

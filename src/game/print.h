@@ -26,6 +26,10 @@
 #define GLYPH_APOSTROPHE      56
 #define GLYPH_DOUBLE_QUOTE    57
 #define GLYPH_UMLAUT          58
+#define GLYPH_UP              60
+#define GLYPH_DOWN            61
+#define GLYPH_LEFT            62
+#define GLYPH_RIGHT           63
 
 void print_text_fmt_int(s32 x, s32 y, const char *str, s32 n);
 void print_text(s32 x, s32 y, const char *str);

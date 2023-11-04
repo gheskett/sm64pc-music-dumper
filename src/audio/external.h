@@ -32,6 +32,8 @@ struct SequenceQueueItem {
 }; // size = 0x2
 
 extern s32 gAudioErrorFlags;
+extern f32 gPitchModifier;
+extern f32 gTempoModifier;
 extern f32 gGlobalSoundSource[3];
 
 // defined in data.c, used by the game

@@ -1,6 +1,7 @@
 #include <ultra64.h>
 
 #include "effects.h"
+#include "external.h"
 #include "load.h"
 #include "data.h"
 #include "seqplayer.h"
@@ -63,10 +64,15 @@ static void sequence_channel_process_sound(struct SequenceChannel *seqChannel) {
     f32 panFromChannel = seqChannel->pan * seqChannel->panChannelWeight;
     f32 panLayerWeight = 1.0f - seqChannel->panChannelWeight;
 
+    f32 channelFreqScale = seqChannel->freqScale;
+    if (seqChannel->seqPlayer != &gSequencePlayers[SEQ_PLAYER_SFX]) {
+        channelFreqScale *= gPitchModifier;
+    }
+
     for (i = 0; i < 4; i++) {
         struct SequenceChannelLayer *layer = seqChannel->layers[i];
         if (layer != NULL && layer->enabled && layer->note != NULL) {
-            layer->noteFreqScale = layer->freqScale * seqChannel->freqScale;
+            layer->noteFreqScale = layer->freqScale * channelFreqScale;
             layer->noteVelocity = layer->velocitySquare * channelVolume;
             layer->notePan = (layer->pan * panLayerWeight) + panFromChannel;
         }
