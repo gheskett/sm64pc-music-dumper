@@ -163,15 +163,19 @@ f32 get_portamento_freq_scale(struct Portamento *p) {
 }
 
 s32 get_vibrato_pitch_change(struct VibratoState *vib) {
-#if defined(VERSION_EU) || defined(VERSION_SH)
-    vib->time += (s32) vib->rate;
-    s32 index = (vib->time >> 10) & 0x3F;
-    return vib->curve[index] >> 8;
-}
+#if (VIBRATO_MODIFIER == 1)
+    vib->time += (s32) (vib->rate * gTempoModifier + 0.5f);
+#elif (VIBRATO_MODIFIER == 2)
+    vib->time += (s32) (vib->rate * gPitchModifier + 0.5f);
 #else
     vib->time += vib->rate;
+#endif
 
     s32 index = (vib->time >> 10) & 0x3F;
+
+#if defined(VERSION_EU) || defined(VERSION_SH)
+    return vib->curve[index] >> 8;
+#else
 
     switch (index & 0x30) {
         case 0x10:
@@ -365,6 +369,10 @@ s32 adsr_update(struct Note *note) {
 #endif
     u8 action = adsr->action;
     u8 state = adsr->state;
+#if (ADSR_MODIFIER == 1 || ADSR_MODIFIER == 2)
+    u32 tmp;
+#endif
+
     switch (state) {
         case ADSR_STATE_DISABLED:
             return 0;
@@ -398,6 +406,25 @@ s32 adsr_update(struct Note *note) {
 
         case ADSR_STATE_LOOP:
             adsr->delay = BSWAP16(adsr->envelope[adsr->envIndex].delay);
+#if (ADSR_MODIFIER == 1)
+            if (adsr->delay >= 0) {
+                tmp = BSWAP16(adsr->envelope[adsr->envIndex].delay) * (1.0f / (gTempoModifier > 0.01f ? gTempoModifier : 0.01f)) + 0.5f;
+                if (tmp >= 0x8000) {
+                    adsr->delay = 0x7FFF;
+                } else {
+                    adsr->delay = (s16) tmp;
+                }
+            }
+#elif (ADSR_MODIFIER == 2)
+            if (adsr->delay >= 0) {
+                tmp = BSWAP16(adsr->envelope[adsr->envIndex].delay) * (1.0f / (gPitchModifier > 0.01f ? gPitchModifier : 0.01f)) + 0.5f;
+                if (tmp >= 0x8000) {
+                    adsr->delay = 0x7FFF;
+                } else {
+                    adsr->delay = (s16) tmp;
+                }
+            }
+#endif
             switch (adsr->delay) {
                 case ADSR_DISABLE:
                     adsr->state = ADSR_STATE_DISABLED;
@@ -468,7 +495,14 @@ s32 adsr_update(struct Note *note) {
 
         case ADSR_STATE_DECAY:
         case ADSR_STATE_RELEASE: {
+#if (ADSR_MODIFIER == 1)
+            adsr->current -= (s16) (adsr->fadeOutVel * gTempoModifier + 0.5f);
+#elif (ADSR_MODIFIER == 2)
+            adsr->current -= (s16) (adsr->fadeOutVel * gPitchModifier + 0.5f);
+#else
             adsr->current -= adsr->fadeOutVel;
+#endif
+
 #if defined(VERSION_EU) || defined(VERSION_SH)
             if (adsr->sustain != 0.0f && state == ADSR_STATE_DECAY) {
 #else
@@ -479,7 +513,25 @@ s32 adsr_update(struct Note *note) {
 #if defined(VERSION_EU) || defined(VERSION_SH)
                     adsr->delay = 128;
 #else
+
+#if (ADSR_MODIFIER == 1)
+                    tmp = adsr->sustain * (1.0f / (gTempoModifier > 0.1f ? gTempoModifier : 0.1f)) / 16.0f + 0.5f;
+                    if (tmp >= 0x8000) {
+                        adsr->delay = 0x7FFF;
+                    } else {
+                        adsr->delay = (s16) tmp;
+                    }
+#elif (ADSR_MODIFIER == 2)
+                    tmp = adsr->sustain * (1.0f / (gPitchModifier > 0.1f ? gPitchModifier : 0.1f)) / 16.0f + 0.5f;
+                    if (tmp >= 0x8000) {
+                        adsr->delay = 0x7FFF;
+                    } else {
+                        adsr->delay = (s16) tmp;
+                    }
+#else
                     adsr->delay = adsr->sustain / 16;
+#endif
+
 #endif
                     adsr->state = ADSR_STATE_SUSTAIN;
                 }

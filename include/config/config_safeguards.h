@@ -26,3 +26,10 @@
 #if defined(BETTER_REVERB) && !(defined(VERSION_US) || defined(VERSION_JP))
     #undef BETTER_REVERB
 #endif
+
+#ifndef VIBRATO_MODIFIER
+    #define VIBRATO_MODIFIER 0
+#endif
+#ifndef ADSR_MODIFIER
+    #define ADSR_MODIFIER 0
+#endif

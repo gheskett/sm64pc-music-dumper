@@ -50,3 +50,12 @@
  */
 #define BETTER_REVERB
 #define BETTER_REVERB_SOUND_PLAYER_PRESET 0
+
+/** 
+ * Affects whether pitch/tempo modifiers should affect vibrato or adsr envelopes. Acceptable values are:
+ * - 0: No Modifier
+ * - 1: Tempo Modifier
+ * - 2: Pitch Modifier
+ */
+#define VIBRATO_MODIFIER 0
+#define ADSR_MODIFIER    0
