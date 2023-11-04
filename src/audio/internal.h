@@ -6,12 +6,6 @@
 #include "types.h"
 #include "game/profiling.h"
 
-/**
- * NOTE: Weird multiples of 32000 (e.g. 44100) can cause audible stuttering during gameplay, but actual audio dumps seem to sound fine for the most part.
- * IF CHANGING, MAKE SURE YOU UPDATE `assemble_sound.py` AS WELL AND RUN `make clean` BEFORE REBUILDING!
- */
-#define FINAL_SAMPLE_RATE 48000
-
 #define SAMPLE_RATE_DIFF (FINAL_SAMPLE_RATE / 32000.0f)
 
 #if defined(VERSION_EU) || defined(VERSION_SH)

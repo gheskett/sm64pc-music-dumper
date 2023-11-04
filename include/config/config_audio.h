@@ -51,6 +51,19 @@
 #define BETTER_REVERB
 #define BETTER_REVERB_SOUND_PLAYER_PRESET 0
 
+/**
+ * Global sample rate to be used by the game and for the audio dumps. Higher number correlates to higher audio resolution. (Functional Limit: ~128000)
+ * 
+ * NOTE: Weird multiples of 32000 (e.g. 44100) can cause audible stuttering during gameplay, but actual audio dumps seem to sound fine for the most part.
+ * IF CHANGING, MAKE SURE YOU UPDATE THE VALUE IN `assemble_sound.py` AS WELL AND RUN `make clean` BEFORE REBUILDING!
+ */
+#define FINAL_SAMPLE_RATE 48000
+
+/** 
+ * Invoke an artificial pitch ceiling cap imposed with higher sample rates, such that the output audio will more accurately reflect vanilla limitations.
+ */
+#define LIMIT_PITCH_CEILING
+
 /** 
  * Affects whether pitch/tempo modifiers should affect vibrato or adsr envelopes. Acceptable values are:
  * - 0: No Modifier

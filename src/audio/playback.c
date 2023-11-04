@@ -595,7 +595,7 @@ void process_notes(void) {
 
             scale = note->adsrVolScale;
             frequency *= note->vibratoFreqScale * note->portamentoFreqScale;
-#if (FINAL_SAMPLE_RATE > 32000)
+#if (FINAL_SAMPLE_RATE > 32000) && defined(LIMIT_PITCH_CEILING)
             cap = 3.99992f / SAMPLE_RATE_DIFF;
 #else
             cap = 3.99992f;
