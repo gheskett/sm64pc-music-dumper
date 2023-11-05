@@ -1358,7 +1358,7 @@ void audio_reset_session(void) {
 #ifdef VERSION_JP
     gTempoInternalToExternal = updatesPerFrame * 3600 / gTatumsPerBeat;
 #else
-    gTempoInternalToExternal = (u32)(updatesPerFrame * 2880000.0f / gTatumsPerBeat / 16.713f);
+    gTempoInternalToExternal = updatesPerFrame * 60 * 60; // PC Port change ONLY, do not port this elsewhere!
 #endif
     gMaxAudioCmds = gMaxSimultaneousNotes * 20 * updatesPerFrame + 320;
 #endif
