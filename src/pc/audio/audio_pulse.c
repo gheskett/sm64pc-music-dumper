@@ -173,7 +173,7 @@ static int audio_pulse_buffered(void) {
 }
 
 static int audio_pulse_get_desired_buffered(void) {
-    return 1100;
+    return ceil(FINAL_SAMPLE_RATE / 60.0f);
 }
 
 static void audio_pulse_play(const uint8_t *buf, size_t len) {

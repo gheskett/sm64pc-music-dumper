@@ -135,7 +135,7 @@ static int audio_alsa_buffered(void) {
 }
 
 static int audio_alsa_get_desired_buffered(void) {
-    return 1100;
+    return ceil(FINAL_SAMPLE_RATE / 60.0f);
 }
 
 static void audio_alsa_play(const uint8_t* buff, size_t len) {

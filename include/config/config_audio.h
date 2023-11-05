@@ -53,9 +53,7 @@
 
 /**
  * Global sample rate to be used by the game and for the audio dumps. Higher number correlates to higher audio resolution. (Functional Limit: ~128000)
- * 
- * NOTE: Weird multiples of 32000 (e.g. 44100) can cause audible stuttering during gameplay, but actual audio dumps seem to sound fine for the most part.
- * IF CHANGING, MAKE SURE YOU UPDATE THE VALUE IN `assemble_sound.py` AS WELL AND RUN `make clean` BEFORE REBUILDING!
+ * NOTE: IF CHANGING, MAKE SURE YOU UPDATE THE VALUE IN `assemble_sound.py` AS WELL AND RUN `make clean` BEFORE REBUILDING!
  */
 #define FINAL_SAMPLE_RATE 48000
 

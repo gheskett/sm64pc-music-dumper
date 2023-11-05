@@ -38,7 +38,7 @@ static int audio_sdl_buffered(void) {
 }
 
 static int audio_sdl_get_desired_buffered(void) {
-    return 1100;
+    return ceil(FINAL_SAMPLE_RATE / 60.0f);
 }
 
 static void audio_sdl_play(const uint8_t *buf, size_t len) {

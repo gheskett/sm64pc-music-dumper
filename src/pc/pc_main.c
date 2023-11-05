@@ -69,6 +69,9 @@ static struct AudioAPI *audio_api;
 static struct GfxWindowManagerAPI *wm_api;
 static struct GfxRenderingAPI *rendering_api;
 
+static s32 audioFrame = 0;
+static s32 samplesProcessed = 0;
+
 extern void gfx_run(Gfx *commands);
 extern void thread5_game_loop(void *arg);
 extern void create_next_audio_buffer(s16 *samples, u32 num_samples);
@@ -289,21 +292,21 @@ void produce_one_frame(void) {
     gfx_start_frame();
     game_loop_one_iteration();
     
-    int samples_left = audio_api->buffered();
-    u32 num_audio_samples = samples_left < audio_api->get_desired_buffered() ? SAMPLES_HIGH : SAMPLES_LOW;
-    //printf("Audio samples: %d %u\n", samples_left, num_audio_samples);
     s16 audio_buffer[SAMPLES_HIGH * 2 * 2];
+    s32 total_samples = 0;
+    s16 *audio_buffer_pointer = &audio_buffer[0];
     for (int i = 0; i < 2; i++) {
-        /*if (audio_cnt-- == 0) {
-            audio_cnt = 2;
-        }
-        u32 num_audio_samples = audio_cnt < 2 ? 528 : 544;*/
-        create_next_audio_buffer(audio_buffer + i * (num_audio_samples * 2), num_audio_samples);
-    }
-    //printf("Audio samples before submitting: %d\n", audio_api->buffered());
-    audio_api->play((u8 *)audio_buffer, 2 * num_audio_samples * 4);
+        u32 num_audio_samples = calculate_next_audio_buffer_size();
 
-    dump_audio(audio_buffer, num_audio_samples * 4);
+        create_next_audio_buffer(audio_buffer_pointer, num_audio_samples);
+
+        total_samples += num_audio_samples;
+        audio_buffer_pointer = &audio_buffer[total_samples * 2];
+    }
+
+    audio_api->play((u8 *)audio_buffer, 2 * total_samples * 2);
+
+    dump_audio(audio_buffer, total_samples * 2);
 
     print_debug();
     

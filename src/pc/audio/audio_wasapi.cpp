@@ -163,7 +163,7 @@ static int audio_wasapi_buffered(void) {
 }
 
 static int audio_wasapi_get_desired_buffered(void) {
-    return 1100;
+    return ceil(FINAL_SAMPLE_RATE / 60.0f);
 }
 
 //#include <stdio.h>
