@@ -24,6 +24,8 @@ static OSMesgQueue sSoundMesgQueue;
 static OSMesg sSoundMesgBuf[1];
 static struct VblankHandler sSoundVblankHandler;
 
+const struct ConsoleConfig gConfig = {.audioFrequency = 1.0f};
+
 // Only written to, never read.
 static u8 sMusicVolume = 0;
 

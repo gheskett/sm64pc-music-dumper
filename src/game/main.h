@@ -21,6 +21,10 @@ struct StructSH8031D9B0 {
     s16 unk0E;
 };
 
+struct ConsoleConfig {
+    f32 audioFrequency;
+};
+
 extern OSThread D_80339210;
 extern OSThread gIdleThread;
 extern OSThread gMainThread;
@@ -44,6 +48,7 @@ extern OSMesg gPIMesgBuf[32];
 extern OSMesg gSIEventMesgBuf[1];
 extern OSMesg gIntrMesgBuf[16];
 extern OSMesg gUnknownMesgBuf[16];
+extern const struct ConsoleConfig gConfig;
 extern OSIoMesg gDmaIoMesg;
 extern OSMesg gMainReceivedMesg;
 extern OSMesgQueue gDmaMesgQueue;
