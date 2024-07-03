@@ -68,7 +68,7 @@ def validate(cond, msg, forstr=""):
 
 
 def strip_comments(string):
-    string = re.sub(re.compile("/\*.*?\*/", re.DOTALL), "", string)
+    string = re.sub(re.compile(r"/\*.*?\*/", re.DOTALL), "", string)
     return re.sub(re.compile("//.*?\n"), "", string)
 
 
