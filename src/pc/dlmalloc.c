@@ -5000,7 +5000,10 @@ static void** ialloc(mstate m,
   else {
     /* if empty req, must still return chunk representing empty array */
     if (n_elements == 0)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Walloc-size"
       return (void**)internal_malloc(m, 0);
+#pragma GCC diagnostic pop
     marray = 0;
     array_size = request2size(n_elements * (sizeof(void*)));
   }
