@@ -83,6 +83,12 @@ ifeq ($(TARGET_N64),0)
 
 endif
 
+ifeq ($(OS),Windows_NT)
+  HEXDUMP := xxd
+else
+  HEXDUMP := hexdump
+endif
+
 ifeq ($(COMPILER),gcc)
   NON_MATCHING := 1
 endif
@@ -786,7 +792,7 @@ $(SOUND_BIN_DIR)/%.m64: $(SOUND_BIN_DIR)/%.o
 # Convert binary file to a comma-separated list of byte values for inclusion in C code
 $(BUILD_DIR)/%.inc.c: $(BUILD_DIR)/%
 	$(call print,Converting to C:,$<,$@)
-	$(V)hexdump -v -e '1/1 "0x%X,"' $< > $@
+	$(V)$(HEXDUMP) -v -e '1/1 "0x%X,"' $< > $@
 	$(V)echo >> $@
 
 # Generate animation data

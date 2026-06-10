@@ -6,7 +6,7 @@
 
 - To compile executable for Windows, use MSYS2 MinGW 64-bit as a terminal.
 - Navigate to repo: `cd [Drive Letter]:/[Path]`
-- Compile: `make -j`
+- Compile: `make -j` (or if using HackerSM64 MinGW setup, `mingw32-make -j`)
 
 For more details on compilation and dependency prerequisites, please read the instructions lower in the README.
 
@@ -21,7 +21,8 @@ For more details on compilation and dependency prerequisites, please read the in
 ### Game Speed / Framerate
 
 - Game speed / Framerate should have no effect on audio dump, especially if it's run at or above 30FPS. Any gameplay stuttering will not ruin the dump.
-- In the NVIDIA Control Panel, set Vertical sync and Max Frame Rate to Off for the executable.
+- In the NVIDIA Control Panel, set "Vertical sync" and "Max Frame Rate" to "Off" for the executable.
+  - Or if you're using AMD, open AMD Software: Adrenalin Addition and set "Wait for Vertical Refresh" to "Always off" for the executable.
 - Use the speedup key (Tab) to speed up gameplay to about as fast as your computer can handle.
 - To cap the speedup, change the `max_speedup_framerate` field in the `sm64config.txt` to a positive integer of your choice.
 
@@ -100,6 +101,8 @@ Then continue following the directions in the [Linux](#linux) installation secti
 5. The executable binary will be located at `build/<VERSION>_pc/sm64.<VERSION>.f3dex2e`.
 
 ### Windows
+
+#### **Rather than following this setup tutorial, consider following along with the [MinGW setup for HackerSM64](https://github.com/HackerN64/HackerSM64/wiki/Setting-up-MinGW-for-WSL%E2%80%90less-build) instead (it should still work)!**
 
 1. Install and update MSYS2, following all the directions listed on https://www.msys2.org/.
 2. From the start menu, launch MSYS2 MinGW and install required packages depending on your machine (do **NOT** launch "MSYS2 MSYS"):

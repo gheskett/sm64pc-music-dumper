@@ -7,8 +7,17 @@ CC           := gcc
 CXX          := g++
 CFLAGS       := -I . -Wall -Wextra -Wno-unused-parameter -pedantic -O2 -s
 LDFLAGS      := -lm
-ALL_PROGRAMS := armips n64graphics n64graphics_ci mio0 n64cksum textconv patch_elf_32bit aifc_decode aiff_extract_codebook vadpcm_enc tabledesign extract_data_for_mio skyconv
+ALL_PROGRAMS := n64graphics n64graphics_ci mio0 n64cksum textconv patch_elf_32bit aifc_decode aiff_extract_codebook vadpcm_enc tabledesign extract_data_for_mio skyconv
 LIBAUDIOFILE := audiofile/libaudiofile.a
+
+ifeq ($(OS),Windows_NT)
+  EXT := .exe
+  OUTPUTS := $(ALL_PROGRAMS:=.exe)
+else
+  ALL_PROGRAMS += armips
+  EXT :=
+  OUTPUTS := $(ALL_PROGRAMS)
+endif
 
 # Only build armips from tools if it is not found on the system
 ifeq ($(call find-command,armips),)
@@ -41,7 +50,7 @@ aiff_extract_codebook_SOURCES := aiff_extract_codebook.c sdk-tools/tabledesign/c
 aiff_extract_codebook_CFLAGS  := -DEXTRACT_CODEBOOK -Iaudiofile -Wno-uninitialized
 aiff_extract_codebook_LDFLAGS := -Laudiofile -laudiofile -lstdc++
 
-tabledesign: $(LIBAUDIOFILE)
+tabledesign$(EXT): $(LIBAUDIOFILE)
 tabledesign_SOURCES := sdk-tools/tabledesign/codebook.c sdk-tools/tabledesign/estimate.c sdk-tools/tabledesign/print.c sdk-tools/tabledesign/tabledesign.c
 tabledesign_CFLAGS  := -Iaudiofile -Wno-uninitialized
 tabledesign_LDFLAGS := -Laudiofile -laudiofile -lstdc++
@@ -53,15 +62,15 @@ extract_data_for_mio_SOURCES := extract_data_for_mio.c
 
 skyconv_SOURCES := skyconv.c n64graphics.c utils.c
 
-armips: CC := $(CXX)
+armips$(EXT): CC := $(CXX)
 armips_SOURCES := armips.cpp
-armips_CFLAGS  := -std=gnu11 -fno-exceptions -fno-rtti -pipe
+armips_CFLAGS  := -std=gnu++11 -fno-exceptions -fno-rtti -pipe
 armips_LDFLAGS := -pthread
 ifeq ($(HOST_ENV),MinGW)
   armips_LDFLAGS += -municode
 endif
 
-all-except-recomp: $(LIBAUDIOFILE) $(BUILD_PROGRAMS)
+all-except-recomp: $(LIBAUDIOFILE) $(OUTPUTS)
 
 all: all-except-recomp ido5.3_recomp
 
@@ -71,8 +80,8 @@ clean:
 	$(MAKE) -C ido5.3_recomp clean
 
 define COMPILE
-$(1): $($1_SOURCES)
-	$$(CC) $(CFLAGS) $($1_CFLAGS) $$^ -o $$@ $($1_LDFLAGS) $(LDFLAGS)
+$(1)$$(EXT): $($1_SOURCES)
+	$$(CC) $(CFLAGS) $($1_CFLAGS) $$^ -o $(1) $($1_LDFLAGS) $(LDFLAGS)
 endef
 
 ido5.3_recomp:
